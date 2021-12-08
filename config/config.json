@@ -41,5 +41,10 @@
     "WeaponsNotLogged": [
         "WEAPON_SNOWBALL",
         "WEAPON_FIREEXTINGUISHER"
-    ]
+    ],
+
+    "Commands": {
+        "logs": "LogHostoryCommand",
+        "screenshot": "ScreenshotCommand"
+    }
 }

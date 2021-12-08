@@ -14,6 +14,8 @@
 ]]
 
 local JD_Debug = false -- Enable when you have issues or when asked by Prefech Staff
+local configFile = LoadResourceFile(GetCurrentResourceName(), "./config/config.json")
+local cfgFile = json.decode(configFile)
 
 RegisterNetEvent('Prefech:JD_logs:Debug')
 AddEventHandler('Prefech:JD_logs:Debug', log)
@@ -79,10 +81,21 @@ end)
 -- Send message when Player connects to the server.
 AddEventHandler("playerConnecting", function(name, setReason, deferrals)
 	local ids = ExtractIdentifiers(source)
-	local bansLoadFile = LoadResourceFile(GetCurrentResourceName(), "./json/bans.json")
-	local bansFile = json.decode(bansLoadFile)
-	local configFile = LoadResourceFile(GetCurrentResourceName(), "./config/config.json")
-	local cfgFile = json.decode(configFile)
+	local globalBansLoadFile = LoadResourceFile(GetCurrentResourceName(), "./json/bans.json")
+	local globalBansFile = json.decode(globalBansLoadFile)
+
+	for k,v in pairs(globalBansFile) do
+		for a,b in pairs(ids) do
+			if has_val(v.Identifiers, b) then
+				if not v.Lifted then
+					setReason('\nYou have been banned.\nReason: '..v.BanReason)
+					CancelEvent()
+					return ServerFunc.CreateLog({ description = '**' ..GetPlayerName(source).. '** tried to connect to your server but is banned.\n**Ban reason:** `'..v.BanReason..'`', isBanned = true, channel = 'system'})
+				end
+			end
+		end
+	end
+	
 	if cfgFile['PrefechGlobalBans'] then
 		bypass = false
 		for k,v in pairs(cfgFile['GlobalBanBypass']) do
@@ -91,7 +104,7 @@ AddEventHandler("playerConnecting", function(name, setReason, deferrals)
 			end
 		end
 		if not bypass then
-			for k,v in pairs(bansFile) do
+			for k,v in pairs(globalBansFile) do
 				for a,b in pairs(ids) do
 					if has_val(v.Identifiers, b) then
 						if not v.Lifted then	
@@ -110,8 +123,6 @@ end)
 AddEventHandler("playerJoining", function(source, oldID)
 	local loadFile = LoadResourceFile(GetCurrentResourceName(), "./json/names.json")
 	local loadedFile = json.decode(loadFile)
-	local configFile = LoadResourceFile(GetCurrentResourceName(), "./config/config.json")
-	local cfgFile = json.decode(configFile)
     local ids = ExtractIdentifiers(source)
 
 	if ids.steam then
@@ -187,8 +198,6 @@ end)
 -- Send message when Player fires a weapon
 RegisterServerEvent('Prefech:playerShotWeapon')
 AddEventHandler('Prefech:playerShotWeapon', function(weapon)
-	local configLoadFile = LoadResourceFile(GetCurrentResourceName(), "./config/config.json")
-	local configFile = json.decode(configLoadFile)
 	if configFile['weaponLog'] then
 		ServerFunc.CreateLog({EmbedMessage = '**' .. GetPlayerName(source)  .. '** fired a `' .. weapon .. '`', player_id = source, channel = 'shooting'})
     end
@@ -239,9 +248,12 @@ AddEventHandler('Prefech:sendClientLogStorage', function(_storage)
 	storage = _storage
 end)
 
-RegisterCommand('logs', function(source, args, RawCommand)
-	local configFile = LoadResourceFile(GetCurrentResourceName(), "./config/config.json")
-	local cfgFile = json.decode(configFile)
+Citizen.CreateThread(function()
+   Citizen.Wait(1000)
+   print(ServerFunc.ConvertColor('chat'))
+end)
+
+function LogHostoryCommand(source, args, RawCommand)
 	if GetResourceState('Prefech_Notify') == "started" then
 		if IsPlayerAceAllowed(source, cfgFile.logHistoryPerms) then
 			if tonumber(args[1]) then
@@ -287,11 +299,9 @@ RegisterCommand('logs', function(source, args, RawCommand)
 	else
 		errorLog('Prefech_Notify is not installed.')
 	end
-end)
+end
 
-RegisterCommand('screenshot', function(source, args, RawCommand)
-	local configFile = LoadResourceFile(GetCurrentResourceName(), "./config/config.json")
-	local cfgFile = json.decode(configFile)
+function ScreenshotCommand(source, args, RawCommand)
 	if GetResourceState('Prefech_Notify') == "started" then
 		if IsPlayerAceAllowed(source, cfgFile.screenshotPerms) then
 			if args[1] and has_val(GetPlayers(), args[1]) then
@@ -334,7 +344,7 @@ RegisterCommand('screenshot', function(source, args, RawCommand)
 	else
 		errorLog('Prefech_Notify is not installed.')
 	end
-end)
+end
 
 function tablelength(T)
 	local count = 0
@@ -410,8 +420,6 @@ end)
 
 -- version check
 Citizen.CreateThread( function()
-	local configLoadFile = LoadResourceFile(GetCurrentResourceName(), "./config/config.json")
-	local configFile = json.decode(configLoadFile)
 	local version = GetResourceMetadata(GetCurrentResourceName(), 'version')
 	SetConvarServerInfo("JD_logs", "V"..version)	
 	if not GetResourceMetadata(GetCurrentResourceName(), 'isbeta') then
@@ -432,7 +440,7 @@ CHANGELOG: %s
 									rv.changelog
 								)
 							)
-							if configFile['DiscordUpdateNotify'] then
+							if cfgFile['DiscordUpdateNotify'] then
 								ServerFunc.CreateLog({ description = "**JD_logs Update V"..rv.version.."**\nDownload the latest update of JD_logs here:\nhttps://github.com/prefech/JD_logs/releases/latest\n\n**Changelog:**\n"..rv.changelog, ping = true, channel = 'system'})
 							end
 						end
@@ -465,7 +473,7 @@ CHANGELOG: %s
 									rv.changelog
 								)
 							)
-							if configFile['DiscordUpdateNotify'] then
+							if cfgFile['DiscordUpdateNotify'] then
 								ServerFunc.CreateLog({ description = "**JD_logs Update V"..rv.version.."**\nDownload the latest update of JD_logs here:\nhttps://github.com/prefech/JD_logs/archive/refs/heads/beta.zip\n\n**Changelog:**\n"..rv.changelog, ping = true, channel = 'system'})
 							end
 						end

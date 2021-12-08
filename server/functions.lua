@@ -15,10 +15,6 @@
 
 ServerFunc = {}
 
-ServerFunc.ConvertColor = function(channel)
-    ConvertColor(channel)
-end
-
 function ConvertColor(channel)
     local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
 	local webhooksFile = json.decode(webhooksLaodFile)
@@ -32,10 +28,6 @@ function ConvertColor(channel)
     else 
         return 000000
     end
-end
-
-ServerFunc.sendWebhooks = function(load)
-    sendWebhooks(load)
 end
 
 function sendWebhooks(load)
@@ -53,23 +45,11 @@ function sendWebhooks(load)
     end
 end
 
-ServerFunc.GetTitle = function(channel, icon)
-	GetTitle(channel, icon)
-end
-
 function GetTitle(channel, icon)
     if icon then
 		return icon.." "..firstToUpper(channel)
 	else
 		return "❓ "..firstToUpper(channel)
-	end
-end
-
-ServerFunc.getStatus = function(status, channel)
-    local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
-	local webhooksFile = json.decode(webhooksLaodFile)
-	if status == 404 or status == 401 and webhooksFile[channel].webhook ~= "DISCORD_WEBHOOK" and webhooksFile[channel].webhook ~= "" then 
-		print('^3Warn: JD_logs webhook. Possible invalid webhook for "'..channel..'" webhook. Status code: '..status)
 	end
 end
 
@@ -231,20 +211,76 @@ function GetPlayerDetails(src, config, channel)
 end
 
 function SecondsToClock(seconds)
-	local days = math.floor(seconds / 86400)
-	seconds = seconds - days * 86400
-	local hours = math.floor(seconds / 3600)
-	seconds = seconds - hours * 3600
-	local minutes = math.floor(seconds / 60) 
-	seconds = seconds - minutes * 60
-	return {days = days, hours = hours, minutes = minutes, seconds = seconds}    
-  end
-
-ServerFunc.GetPlayerDetails = function(src, config, channel)
-	GetPlayerDetails(src, config, channel)
+    local days = math.floor(seconds / 86400)
+    seconds = seconds - days * 86400
+    local hours = math.floor(seconds / 3600)
+    seconds = seconds - hours * 3600
+    local minutes = math.floor(seconds / 60) 
+    seconds = seconds - minutes * 60
+    return {days = days, hours = hours, minutes = minutes, seconds = seconds}    
 end
 
-ServerFunc.CreateLog = function(args)
+function ExtractIdentifiers(src)
+    local identifiers = {}
+
+    for i = 0, GetNumPlayerIdentifiers(src) - 1 do
+        local id = GetPlayerIdentifier(src, i)
+
+        if string.find(id, "steam:") then
+            identifiers['steam'] = id
+        elseif string.find(id, "ip:") then
+            identifiers['ip'] = id
+        elseif string.find(id, "discord:") then
+            identifiers['discord'] = id
+        elseif string.find(id, "license:") then
+            identifiers['license'] = id
+        elseif string.find(id, "license2:") then
+            identifiers['license2'] = id
+        elseif string.find(id, "xbl:") then
+            identifiers['xbl'] = id
+        elseif string.find(id, "live:") then
+            identifiers['live'] = id
+        end
+    end
+
+    return identifiers
+end
+
+function getPlayerLocation(src)
+    local raw = LoadResourceFile(GetCurrentResourceName(), "./json/postals.json")
+
+    local postals = json.decode(raw)
+    local nearest = nil
+
+    local player = src
+    local ped = GetPlayerPed(player)
+    local playerCoords = GetEntityCoords(ped)
+
+    local x, y = table.unpack(playerCoords)
+
+	local ndm = -1
+	local ni = -1
+	for i, p in ipairs(postals) do
+		local dm = (x - p.x) ^ 2 + (y - p.y) ^ 2
+		if ndm == -1 or dm < ndm then
+			ni = i
+			ndm = dm
+		end
+	end
+
+	if ni ~= -1 then
+		local nd = math.sqrt(ndm)
+		nearest = {i = ni, d = nd}
+	end
+	_nearest = postals[nearest.i].code
+	return _nearest
+end
+
+function firstToUpper(str)
+    return (str:gsub("^%l", string.upper))
+end
+
+function CreateLog(args)
     local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
 	local configLoadFile = LoadResourceFile(GetCurrentResourceName(), "./config/config.json")
 	local webhooksFile = json.decode(webhooksLaodFile)
@@ -390,63 +426,34 @@ ServerFunc.CreateLog = function(args)
     end
 end
 
-function ExtractIdentifiers(src)
-    local identifiers = {}
-
-    for i = 0, GetNumPlayerIdentifiers(src) - 1 do
-        local id = GetPlayerIdentifier(src, i)
-
-        if string.find(id, "steam:") then
-            identifiers['steam'] = id
-        elseif string.find(id, "ip:") then
-            identifiers['ip'] = id
-        elseif string.find(id, "discord:") then
-            identifiers['discord'] = id
-        elseif string.find(id, "license:") then
-            identifiers['license'] = id
-        elseif string.find(id, "license2:") then
-            identifiers['license2'] = id
-        elseif string.find(id, "xbl:") then
-            identifiers['xbl'] = id
-        elseif string.find(id, "live:") then
-            identifiers['live'] = id
-        end
-    end
-
-    return identifiers
+function getStatus()
+    local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
+	local webhooksFile = json.decode(webhooksLaodFile)
+	if status == 404 or status == 401 and webhooksFile[channel].webhook ~= "DISCORD_WEBHOOK" and webhooksFile[channel].webhook ~= "" then 
+		print('^3Warn: JD_logs webhook. Possible invalid webhook for "'..channel..'" webhook. Status code: '..status)
+	end
 end
 
-
-function getPlayerLocation(src)
-    local raw = LoadResourceFile(GetCurrentResourceName(), "./json/postals.json")
-
-    local postals = json.decode(raw)
-    local nearest = nil
-
-    local player = src
-    local ped = GetPlayerPed(player)
-    local playerCoords = GetEntityCoords(ped)
-
-    local x, y = table.unpack(playerCoords)
-
-	local ndm = -1
-	local ni = -1
-	for i, p in ipairs(postals) do
-		local dm = (x - p.x) ^ 2 + (y - p.y) ^ 2
-		if ndm == -1 or dm < ndm then
-			ni = i
-			ndm = dm
-		end
-	end
-
-	if ni ~= -1 then
-		local nd = math.sqrt(ndm)
-		nearest = {i = ni, d = nd}
-	end
-	_nearest = postals[nearest.i].code
-	return _nearest
+ServerFunc.GetPlayerDetails = function(src, config, channel)
+	GetPlayerDetails(src, config, channel)
 end
 
-function firstToUpper(str)
-    return (str:gsub("^%l", string.upper))
+ServerFunc.CreateLog = function(args)
+    CreateLog(args)
+end
+
+ServerFunc.getStatus = function(status, channel)
+    getStatus(status, channel)
+end
+
+ServerFunc.sendWebhooks = function(load)
+    sendWebhooks(load)
+end
+
+ServerFunc.GetTitle = function(channel, icon)
+	GetTitle(channel, icon)
+end
+
+ServerFunc.ConvertColor = function(channel) 
+    ConvertColor(channel)
 end

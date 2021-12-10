@@ -114,7 +114,7 @@ AddEventHandler("playerConnecting", function(name, setReason, deferrals)
 				end
 			end
 		end
-	end	
+	end
 	ServerFunc.CreateLog({EmbedMessage = '**' ..GetPlayerName(source).. '** is connecting to the server.', player_id = source, channel = 'joins'})
 end)
 
@@ -155,6 +155,19 @@ AddEventHandler("playerJoining", function(source, oldID)
 			ServerFunc.CreateLog({EmbedMessage = 'Player **' .. GetPlayerName(source) .. '** does not have steam active and we can\'t log their name.', player_id = source, channel = 'nameChange'})
 		end
 	end
+
+	if IsPlayerAceAllowed(source, cfgFile['logHistoryPerms']) then
+		TriggerClientEvent("chat:addSuggestion", source, "/logs", "See the recent 5 logs of a player.", {
+			{ name="id", help="The id of the player." }
+		});
+	end
+	
+	if IsPlayerAceAllowed(source, cfgFile['screenshotPerms']) then
+		TriggerClientEvent("chat:addSuggestion", source, "/screenshot", "Screenshot the clients game.", {
+			{ name="id", help="The id of the player." }
+		});
+	end
+
 end)
 
 AddEventHandler('playerDropped', function(reason)
@@ -238,12 +251,8 @@ AddEventHandler('Prefech:sendClientLogStorage', function(_storage)
 	storage = _storage
 end)
 
-Citizen.CreateThread(function()
-   Citizen.Wait(1000)
-   print(ServerFunc.ConvertColor('chat'))
-end)
-
-function LogHostoryCommand(source, args, RawCommand)
+Commands = {}
+Commands.LogHostoryCommand = function(source, args, RawCommand)
 	if GetResourceState('Prefech_Notify') == "started" then
 		if IsPlayerAceAllowed(source, cfgFile.logHistoryPerms) then
 			if tonumber(args[1]) then
@@ -291,7 +300,7 @@ function LogHostoryCommand(source, args, RawCommand)
 	end
 end
 
-function ScreenshotCommand(source, args, RawCommand)
+Commands.ScreenshotCommand = function(source, args, RawCommand)
 	if GetResourceState('Prefech_Notify') == "started" then
 		if IsPlayerAceAllowed(source, cfgFile.screenshotPerms) then
 			if args[1] and has_val(GetPlayers(), args[1]) then
@@ -334,6 +343,10 @@ function ScreenshotCommand(source, args, RawCommand)
 	else
 		errorLog('Prefech_Notify is not installed.')
 	end
+end
+
+for k,v in pairs(cfgFile['Commands']) do
+	RegisterCommand(k, Commands[v])
 end
 
 function tablelength(T)

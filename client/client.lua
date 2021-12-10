@@ -304,7 +304,3 @@ function tablelength(T)
 	for _ in pairs(T) do count = count + 1 end
 	return count
 end
-
-TriggerEvent("chat:addSuggestion", "/logs", "See the recent 5 logs of a player.", {
-	{ name="id", help="The id of the player." }
-});

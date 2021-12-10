@@ -134,13 +134,13 @@ function GetPlayerDetails(src, config, channel)
     if config.Session or config.PlayTime and not webhooksFile[channel].Hide['PlayTime'] then
         if GetResourceState('Prefech_playTime') == "started" then
             playtime = exports.Prefech_playTime:getPlayTime(src)
-            if config.Session and channel ~= 'joins' then
+            if config.Session and channel ~= 'joins' and playtime ~= nil then
                 playTimeArgs = SecondsToClock(playtime.Session)
                 _session = "\n**Session Time:** `"..string.format("%02d:%02d:%02d", playTimeArgs.hours, playTimeArgs.minutes, playTimeArgs.seconds)..'`'
             else
                 _session = ""
             end
-            if config.PlayTime and channel ~= 'joins' then
+            if config.PlayTime and channel ~= 'joins' and playtime ~= nil then
                 playTimeArgs = SecondsToClock(playtime.Total + playtime.Session)
                 _total = "\n**Total Time:** `"..string.format("%d days and %02d:%02d:%02d", playTimeArgs.days, playTimeArgs.hours, playTimeArgs.minutes, playTimeArgs.seconds)..'`'
             else

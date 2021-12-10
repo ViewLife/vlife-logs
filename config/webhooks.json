@@ -23,8 +23,10 @@
             "Postal": false,
             "DiscordID": false,
             "License": false,
+            "License2": false,
             "IP": false,
-            "PlayTime": false
+            "PlayTime": false,
+            "playerPing": true
         }
     },
 	"joins": { 
@@ -39,8 +41,10 @@
             "Postal": false,
             "DiscordID": false,
             "License": false,
+            "License2": false,
             "IP": false,
-            "PlayTime": false
+            "PlayTime": false,
+            "playerPing": true
         }
     },
 	"leaving": { 
@@ -55,8 +59,10 @@
             "Postal": false,
             "DiscordID": false,
             "License": false,
+            "License2": false,
             "IP": false,
-            "PlayTime": false
+            "PlayTime": false,
+            "playerPing": true
         }
     },
 	"deaths": { 
@@ -72,8 +78,10 @@
             "Postal": false,
             "DiscordID": false,
             "License": false,
+            "License2": false,
             "IP": false,
-            "PlayTime": false
+            "PlayTime": false,
+            "playerPing": true
         }
     },
 	"shooting": { 
@@ -89,8 +97,10 @@
             "Postal": false,
             "DiscordID": false,
             "License": false,
+            "License2": false,
             "IP": false,
-            "PlayTime": false
+            "PlayTime": false,
+            "playerPing": true
         }
     },
 	"resources": { 
@@ -105,8 +115,10 @@
             "Postal": false,
             "DiscordID": false,
             "License": false,
+            "License2": false,
             "IP": false,
-            "PlayTime": false
+            "PlayTime": false,
+            "playerPing": false
         }
     },
     "nameChange": { 
@@ -121,12 +133,14 @@
             "Postal": false,
             "DiscordID": false,
             "License": false,
+            "License2": false,
             "IP": false,
-            "PlayTime": false
+            "PlayTime": false,
+            "playerPing": true
         }
     },
     "explosion": {
-        "webhook": "https://canary.discord.com/api/webhooks/831839555039526940/WBoXbR3h3NKTtYqFt1_QFQoffrCbJZctLoCeN2UpMxDsEL6uFpsOEPu7AG0x0pzAmiBw", 
+        "webhook": "DISCORD_WEBHOOK", 
         "icon": "🧨", 
         "color": "#03FC98",
         "embed": true,
@@ -137,8 +151,48 @@
             "Postal": false,
             "DiscordID": false,
             "License": false,
+            "License2": false,
             "IP": false,
-            "PlayTime": false
+            "PlayTime": false,
+            "playerPing": true
+        }
+    },
+    "screenshot": { 
+        "webhook": "DISCORD_WEBHOOK", 
+        "icon": "📸", 
+        "color": "#A1A1A1",
+        "logHistory": false,
+        "embed": true,
+        "Hide": {
+            "PlayerID": false,
+            "SteamID": false,
+            "SteamURL": false,
+            "Postal": false,
+            "DiscordID": false,
+            "License": false,
+            "License2": false,
+            "IP": false,
+            "PlayTime": false,
+            "playerPing": false
+        }
+    },
+    "AntiCheat": {
+        "webhook": "DISCORD_WEBHOOK",
+        "icon": "⚠", 
+        "color": "#A1A1A1",
+        "logHistory": false,
+        "embed": true,
+        "Hide": {
+            "PlayerID": false,
+            "SteamID": false,
+            "SteamURL": false,
+            "Postal": false,
+            "DiscordID": false,
+            "License": false,
+            "License2": false,
+            "IP": false,
+            "PlayTime": false,
+            "playerPing": false
         }
     }
 }

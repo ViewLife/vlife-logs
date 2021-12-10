@@ -15,12 +15,8 @@
 
 ServerFunc = {}
 
-ServerFunc.ConvertColor = function(channel)
-    ConvertColor(channel)
-end
-
 function ConvertColor(channel)
-    local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./json/webhooks.json")
+    local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
 	local webhooksFile = json.decode(webhooksLaodFile)
     if webhooksFile[channel] then
         src = webhooksFile[channel].color
@@ -34,27 +30,19 @@ function ConvertColor(channel)
     end
 end
 
-ServerFunc.sendWebhooks = function(load)
-    sendWebhooks(load)
-end
-
 function sendWebhooks(load)
-    local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./json/webhooks.json")
+    local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
 	local webhooksFile = json.decode(webhooksLaodFile)
     
     if webhooksFile[load.channel] then
-        PerformHttpRequest(webhooksFile[load.channel].webhook, function(err, text, headers) 
-            ServerFunc.getStatus(err, load.channel) 
+        PerformHttpRequest(webhooksFile[load.channel].webhook, function(err, text, headers)
+            ServerFunc.getStatus(err, load.channel)
         end, 'POST', json.encode(load.messageToDeliver), {
             ['Content-Type'] = 'application/json' 
         })
     else
         print('^1Error: No webhook channel set for: ^0'..load.channel)
     end
-end
-
-ServerFunc.GetTitle = function(channel, icon)
-	GetTitle(channel, icon)
 end
 
 function GetTitle(channel, icon)
@@ -65,14 +53,8 @@ function GetTitle(channel, icon)
 	end
 end
 
-ServerFunc.getStatus = function(status, channel)
-	if status == 404 or status == 401 and Config.webhooks[channel] ~= "DISCORD_WEBHOOK" and Config.webhooks[channel] ~= "" then 
-		print('^3Warn: JD_logs webhook. Possible invalid webhook for "'..channel..'" webhook. Status code: '..status)
-	end
-end
-
 function GetPlayerDetails(src, config, channel)
-    local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./json/webhooks.json")
+    local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
 	local webhooksFile = json.decode(webhooksLaodFile)
 
     local ids = ExtractIdentifiers(src)
@@ -85,7 +67,7 @@ function GetPlayerDetails(src, config, channel)
 
     if config['discordId'] and not webhooksFile[channel].Hide['DiscordID']then
         if ids.discord then
-            _discordID ="\n**Discord ID:** <@" ..ids.discord:gsub("discord:", "")..">"
+            _discordID ="\n**Discord ID:** <@" ..ids.discord:gsub("discord:", "").."> ("..ids.discord:gsub("discord:", "")..")"
         else
             _discordID = "\n**Discord ID:** N/A"
         end
@@ -127,6 +109,16 @@ function GetPlayerDetails(src, config, channel)
         end 
     else 
         _license = "" 
+    end
+
+    if config['license2'] and not webhooksFile[channel].Hide['License2'] then 
+        if ids.license2 then 
+            _license2 ="\n**License 2:** " ..ids.license2
+        else 
+            _license2 = "\n**License 2:** N/A" 
+        end 
+    else 
+        _license2 = "" 
     end
 
 	if config['ip'] and not webhooksFile[channel].Hide['IP'] then 
@@ -174,29 +166,125 @@ function GetPlayerDetails(src, config, channel)
         _playerID = "" 
     end
 
-    return _playerID..''.. _postal ..''.. _discordID..''.._steamID..''.._steamURL..''.._license..''.._session..''.._total..''.._ip
+    if config['playerPing'] and not webhooksFile[channel].Hide['playerPing'] then
+        _ping = "\n**Ping:** `"..GetPlayerPing(src)..'ms`'
+    else
+        _ping = ""
+    end
+
+    if config['playerHealth'] or config['playerArmor'] then
+        local playerPed = GetPlayerPed(src)
+        if config['playerHealth'] and config['playerArmor'] then            
+            local maxHealth = GetEntityMaxHealth(playerPed)
+            local health = GetEntityHealth(playerPed)
+            if maxHealth == 200 then
+                correction = 100
+            else
+                correction = 0
+            end
+            local maxHealth = maxHealth - correction
+            local health = health - correction
+            local maxArmour = GetPlayerMaxArmour(src)
+            local armour = GetPedArmour(playerPed)
+            _hp = "\n**Health:** ❤: `"..health.."/"..maxHealth.."` **|** 🛡: `"..armour.."/"..maxArmour.."`"
+        elseif config['playerHealth'] then
+            local maxHealth = GetEntityMaxHealth(playerPed)
+            local health = GetEntityHealth(playerPed)
+            if maxHealth == 200 then
+                correction = 100
+            else
+                correction = 0
+            end
+            local maxHealth = maxHealth - correction
+            local health = health - correction
+            _hp = "\n**Health:** ❤: `"..health.."/"..maxHealth.."`"
+        elseif config['playerArmor'] then
+            local maxArmour = GetPlayerMaxArmour(src)
+            local armour = GetPedArmour(playerPed)
+            _hp = "\n**Health:** 🛡: `"..armour.."/"..maxArmour.."`"
+        end
+    else
+        _hp = ""
+    end
+
+    return _playerID..''.. _postal ..''.._hp..''.. _discordID..''.._steamID..''.._steamURL..''.._license..''.._license2..''.._session..''.._total..''.._ip
 end
 
 function SecondsToClock(seconds)
-	local days = math.floor(seconds / 86400)
-	seconds = seconds - days * 86400
-	local hours = math.floor(seconds / 3600)
-	seconds = seconds - hours * 3600
-	local minutes = math.floor(seconds / 60) 
-	seconds = seconds - minutes * 60
-	return {days = days, hours = hours, minutes = minutes, seconds = seconds}    
-  end
-
-ServerFunc.GetPlayerDetails = function(src, config, channel)
-	GetPlayerDetails(src, config, channel)
+    local days = math.floor(seconds / 86400)
+    seconds = seconds - days * 86400
+    local hours = math.floor(seconds / 3600)
+    seconds = seconds - hours * 3600
+    local minutes = math.floor(seconds / 60) 
+    seconds = seconds - minutes * 60
+    return {days = days, hours = hours, minutes = minutes, seconds = seconds}    
 end
 
-ServerFunc.CreateLog = function(args)
-    local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./json/webhooks.json")
-	local configLoadFile = LoadResourceFile(GetCurrentResourceName(), "./json/config.json")
+function ExtractIdentifiers(src)
+    local identifiers = {}
+
+    for i = 0, GetNumPlayerIdentifiers(src) - 1 do
+        local id = GetPlayerIdentifier(src, i)
+
+        if string.find(id, "steam:") then
+            identifiers['steam'] = id
+        elseif string.find(id, "ip:") then
+            identifiers['ip'] = id
+        elseif string.find(id, "discord:") then
+            identifiers['discord'] = id
+        elseif string.find(id, "license:") then
+            identifiers['license'] = id
+        elseif string.find(id, "license2:") then
+            identifiers['license2'] = id
+        elseif string.find(id, "xbl:") then
+            identifiers['xbl'] = id
+        elseif string.find(id, "live:") then
+            identifiers['live'] = id
+        end
+    end
+
+    return identifiers
+end
+
+function getPlayerLocation(src)
+    local raw = LoadResourceFile(GetCurrentResourceName(), "./json/postals.json")
+
+    local postals = json.decode(raw)
+    local nearest = nil
+
+    local player = src
+    local ped = GetPlayerPed(player)
+    local playerCoords = GetEntityCoords(ped)
+
+    local x, y = table.unpack(playerCoords)
+
+	local ndm = -1
+	local ni = -1
+	for i, p in ipairs(postals) do
+		local dm = (x - p.x) ^ 2 + (y - p.y) ^ 2
+		if ndm == -1 or dm < ndm then
+			ni = i
+			ndm = dm
+		end
+	end
+
+	if ni ~= -1 then
+		local nd = math.sqrt(ndm)
+		nearest = {i = ni, d = nd}
+	end
+	_nearest = postals[nearest.i].code
+	return _nearest
+end
+
+function firstToUpper(str)
+    return (str:gsub("^%l", string.upper))
+end
+
+function CreateLog(args)
+    local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
+	local configLoadFile = LoadResourceFile(GetCurrentResourceName(), "./config/config.json")
 	local webhooksFile = json.decode(webhooksLaodFile)
 	local configFile = json.decode(configLoadFile)
-
     --[[
         Start System channel filter
     ]]
@@ -213,12 +301,15 @@ ServerFunc.CreateLog = function(args)
                 ["title"] = "📢 SYSTEM",
                 ["description"] = args['description'],
                 ["footer"] = {
-                    ["text"] = "Prefech.com • "..os.date("%x %X %p"),
+                    ["text"] = "2020 - "..os.date("%Y").." © Prefech • "..os.date("%x %X %p"),
                     ["icon_url"] = "https://prefech.com/i/DiscordIcon.png",
                 },
             }}, 
             avatar_url = "https://prefech.com/i/DiscordIcon.png"
         }
+        if args['isBanned'] then
+            message['embeds'][1]['title'] = "⛔ Global Banned"
+        end
         if args['ping'] then
             message['content'] = "@everyone"
         end
@@ -264,6 +355,13 @@ ServerFunc.CreateLog = function(args)
                     ["inline"] = configFile.inlineField
                 }
             }
+            if configFile['timestamp'] then
+                message['embeds'][1].fields[2]  = {
+                    ["name"] = "Timestamp:",
+                    ["value"] = "<t:".. math.floor(tonumber(os.time())) ..":R>",
+                    ["inline"] = false
+                }
+            end
         end
 
         if args.player_2_id then
@@ -275,6 +373,23 @@ ServerFunc.CreateLog = function(args)
                 ["name"] = "Player Details: "..GetPlayerName(args.player_2_id),
                 ["value"] = Player_2_Details,
                 ["inline"] = configFile.inlineField
+            }
+            if configFile['timestamp'] then
+                message['embeds'][1].fields[3]  = {
+                    ["name"] = "Timestamp:",
+                    ["value"] = "<t:".. math.floor(tonumber(os.time())) ..":R>",
+                    ["inline"] = false
+                }
+            end
+        end
+
+        if not message['embeds'][1].fields then
+            message['embeds'][1].fields = {
+                {
+                    ["name"] = "Timestamp:",
+                    ["value"] = "<t:".. math.floor(tonumber(os.time())) ..":R>",
+                    ["inline"] = false
+                }
             }
         end
 
@@ -311,61 +426,34 @@ ServerFunc.CreateLog = function(args)
     end
 end
 
-function ExtractIdentifiers(src)
-    local identifiers = {}
-
-    for i = 0, GetNumPlayerIdentifiers(src) - 1 do
-        local id = GetPlayerIdentifier(src, i)
-
-        if string.find(id, "steam") then
-            identifiers['steam'] = id
-        elseif string.find(id, "ip") then
-            identifiers['ip'] = id
-        elseif string.find(id, "discord") then
-            identifiers['discord'] = id
-        elseif string.find(id, "license") then
-            identifiers['license'] = id
-        elseif string.find(id, "xbl") then
-            identifiers['xbl'] = id
-        elseif string.find(id, "live") then
-            identifiers['live'] = id
-        end
-    end
-
-    return identifiers
+function getStatus()
+    local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
+	local webhooksFile = json.decode(webhooksLaodFile)
+	if status == 404 or status == 401 and webhooksFile[channel].webhook ~= "DISCORD_WEBHOOK" and webhooksFile[channel].webhook ~= "" then 
+		print('^3Warn: JD_logs webhook. Possible invalid webhook for "'..channel..'" webhook. Status code: '..status)
+	end
 end
 
-
-function getPlayerLocation(src)
-    local raw = LoadResourceFile(GetCurrentResourceName(), "./json/postals.json")
-
-    local postals = json.decode(raw)
-    local nearest = nil
-
-    local player = src
-    local ped = GetPlayerPed(player)
-    local playerCoords = GetEntityCoords(ped)
-
-    local x, y = table.unpack(playerCoords)
-
-	local ndm = -1
-	local ni = -1
-	for i, p in ipairs(postals) do
-		local dm = (x - p.x) ^ 2 + (y - p.y) ^ 2
-		if ndm == -1 or dm < ndm then
-			ni = i
-			ndm = dm
-		end
-	end
-
-	if ni ~= -1 then
-		local nd = math.sqrt(ndm)
-		nearest = {i = ni, d = nd}
-	end
-	_nearest = postals[nearest.i].code
-	return _nearest
+ServerFunc.GetPlayerDetails = function(src, config, channel)
+	GetPlayerDetails(src, config, channel)
 end
 
-function firstToUpper(str)
-    return (str:gsub("^%l", string.upper))
+ServerFunc.CreateLog = function(args)
+    CreateLog(args)
+end
+
+ServerFunc.getStatus = function(status, channel)
+    getStatus(status, channel)
+end
+
+ServerFunc.sendWebhooks = function(load)
+    sendWebhooks(load)
+end
+
+ServerFunc.GetTitle = function(channel, icon)
+	GetTitle(channel, icon)
+end
+
+ServerFunc.ConvertColor = function(channel) 
+    ConvertColor(channel)
 end

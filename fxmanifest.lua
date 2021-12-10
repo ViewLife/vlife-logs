@@ -13,16 +13,17 @@
     #####################################################################
 ]]
 
+version '2.1.5.5'
+isbeta 'yes'
 author 'Prefech'
 description 'FXServer logs to Discord (https://prefech.com/)'
-version '2.1.4'
-url 'https://prefech.com'
+repository 'https://github.com/prefech/JD_logs'
 
 -- Server Scripts
 server_scripts {
     'server/server.lua',
     'server/functions.lua'
-} 
+}
 
 --Client Scripts
 client_scripts {
@@ -32,8 +33,8 @@ client_scripts {
 }
 
 files {
-    'json/eventLogs.json',
-    'json/config.json'
+    'config/eventLogs.json',
+    'config/config.json'
 }
 
 game 'gta5'

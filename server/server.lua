@@ -77,8 +77,6 @@ exports('createLog', function(args)
 	debugLog('Server New Export from: '..resource)
 end)
 
--- Event Handlers
--- Send message when Player connects to the server.
 AddEventHandler("playerConnecting", function(name, setReason, deferrals)
 	local ids = ExtractIdentifiers(source)
 	local globalBansLoadFile = LoadResourceFile(GetCurrentResourceName(), "./json/bans.json")
@@ -159,17 +157,14 @@ AddEventHandler("playerJoining", function(source, oldID)
 	end
 end)
 
--- Send message when Player disconnects from the server
 AddEventHandler('playerDropped', function(reason)
 	ServerFunc.CreateLog({EmbedMessage = '**' ..GetPlayerName(source).. '** has left the server. (Reason: ' .. reason .. ')', player_id = source, channel = 'leaving'})
 end)
 
--- Send message when Player creates a chat message (Does not show commands)
 AddEventHandler('chatMessage', function(source, name, msg)
 	ServerFunc.CreateLog({EmbedMessage = '**'..GetPlayerName(source) .. '**: `' .. msg..'`', player_id = source, channel = 'chat'})
 end)
 
--- Send message when Player died (including reason/killer check) (Not always working)
 RegisterServerEvent('Prefech:playerDied')
 AddEventHandler('Prefech:playerDied',function(args)
 	if args.weapon == nil then _Weapon = "" else _Weapon = ""..args.weapon.."" end
@@ -195,7 +190,6 @@ AddEventHandler('Prefech:playerDied',function(args)
 	end
 end)
 
--- Send message when Player fires a weapon
 RegisterServerEvent('Prefech:playerShotWeapon')
 AddEventHandler('Prefech:playerShotWeapon', function(weapon)
 	if configFile['weaponLog'] then
@@ -204,7 +198,6 @@ AddEventHandler('Prefech:playerShotWeapon', function(weapon)
 end)
 
 local explosionTypes = {'GRENADE', 'GRENADELAUNCHER', 'STICKYBOMB', 'MOLOTOV', 'ROCKET', 'TANKSHELL', 'HI_OCTANE', 'CAR', 'PLANE', 'PETROL_PUMP', 'BIKE', 'DIR_STEAM', 'DIR_FLAME', 'DIR_WATER_HYDRANT', 'DIR_GAS_CANISTER', 'BOAT', 'SHIP_DESTROY', 'TRUCK', 'BULLET', 'SMOKEGRENADELAUNCHER', 'SMOKEGRENADE', 'BZGAS', 'FLARE', 'GAS_CANISTER', 'EXTINGUISHER', 'PROGRAMMABLEAR', 'TRAIN', 'BARREL', 'PROPANE', 'BLIMP', 'DIR_FLAME_EXPLODE', 'TANKER', 'PLANE_ROCKET', 'VEHICLE_BULLET', 'GAS_TANK', 'BIRD_CRAP', 'RAILGUN', 'BLIMP2', 'FIREWORK', 'SNOWBALL', 'PROXMINE', 'VALKYRIE_CANNON', 'AIR_DEFENCE', 'PIPEBOMB', 'VEHICLEMINE', 'EXPLOSIVEAMMO', 'APCSHELL', 'BOMB_CLUSTER', 'BOMB_GAS', 'BOMB_INCENDIARY', 'BOMB_STANDARD', 'TORPEDO', 'TORPEDO_UNDERWATER', 'BOMBUSHKA_CANNON', 'BOMB_CLUSTER_SECONDARY', 'HUNTER_BARRAGE', 'HUNTER_CANNON', 'ROGUE_CANNON', 'MINE_UNDERWATER', 'ORBITAL_CANNON', 'BOMB_STANDARD_WIDE', 'EXPLOSIVEAMMO_SHOTGUN', 'OPPRESSOR2_CANNON', 'MORTAR_KINETIC', 'VEHICLEMINE_KINETIC', 'VEHICLEMINE_EMP', 'VEHICLEMINE_SPIKE', 'VEHICLEMINE_SLICK', 'VEHICLEMINE_TAR', 'SCRIPT_DRONE', 'RAYGUN', 'BURIEDMINE', 'SCRIPT_MISSIL'}
-
 AddEventHandler('explosionEvent', function(source, ev)
     if ev.explosionType < -1 or ev.explosionType > 77 then
         ev.explosionType = 'UNKNOWN'
@@ -214,7 +207,6 @@ AddEventHandler('explosionEvent', function(source, ev)
     ServerFunc.CreateLog({EmbedMessage = '**' .. GetPlayerName(source)  .. '** created a explosion `' .. ev.explosionType .. '`', player_id = source, channel = 'explosion'})
 end)
 
--- Getting exports from clientside
 RegisterServerEvent('Prefech:ClientDiscord')
 AddEventHandler('Prefech:ClientDiscord', function(args)
 	if args.screenshot then
@@ -231,12 +223,10 @@ AddEventHandler('Prefech:ClientDiscord', function(args)
 	end
 end)
 
--- Send message when a resource is being stopped
 AddEventHandler('onResourceStop', function (resourceName)
 	ServerFunc.CreateLog({EmbedMessage = '**' .. resourceName .. '** has been stopped.', channel = 'resources'})
 end)
 
--- Send message when a resource is being started
 AddEventHandler('onResourceStart', function (resourceName)
     Citizen.Wait(100)
 	ServerFunc.CreateLog({EmbedMessage = '**' .. resourceName .. '** has been started.', channel = 'resources'})

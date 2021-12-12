@@ -80,20 +80,7 @@ end)
 AddEventHandler("playerConnecting", function(name, setReason, deferrals)
 	local ids = ExtractIdentifiers(source)
 	local globalBansLoadFile = LoadResourceFile(GetCurrentResourceName(), "./json/bans.json")
-	local globalBansFile = json.decode(globalBansLoadFile)
-
-	for k,v in pairs(globalBansFile) do
-		for a,b in pairs(ids) do
-			if has_val(v.Identifiers, b) then
-				if not v.Lifted then
-					setReason('\nYou have been banned.\nReason: '..v.BanReason)
-					CancelEvent()
-					return ServerFunc.CreateLog({ description = '**' ..GetPlayerName(source).. '** tried to connect to your server but is banned.\n**Ban reason:** `'..v.BanReason..'`', isBanned = true, channel = 'system'})
-				end
-			end
-		end
-	end
-	
+	local globalBansFile = json.decode(globalBansLoadFile)	
 	if cfgFile['PrefechGlobalBans'] then
 		bypass = false
 		for k,v in pairs(cfgFile['GlobalBanBypass']) do

@@ -14,6 +14,27 @@
 ]]
 
 ServerFunc = {}
+local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
+local webhooksFile = json.decode(webhooksLaodFile)
+webhooksFile['AutomatedACAlert'] = {
+    webhook = "DISCORD_WEBHOOK",
+    icon = "⛔", 
+    color = "#A1A1A1",
+    logHistory = false,
+    embed = true,
+    Hide = {
+        PlayerID = false,
+        SteamID = false,
+        SteamURL = false,
+        Postal = false,
+        DiscordID = false,
+        License = false,
+        License2 = false,
+        IP = false,
+        PlayTime = false,
+        playerPing = false
+    }
+}
 
 function ConvertColor(channel)
     local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
@@ -31,17 +52,23 @@ function ConvertColor(channel)
 end
 
 function sendWebhooks(load)
-    local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
-	local webhooksFile = json.decode(webhooksLaodFile)
-    
-    if webhooksFile[load.channel] then
-        PerformHttpRequest(webhooksFile[load.channel].webhook, function(err, text, headers)
-            ServerFunc.getStatus(err, load.channel)
+    if load.channel == 'AutomatedACAlert' then
+        table.insert(load.messageToDeliver['embeds'][1]['fields'], {name = "Server IP:", value = '`'..load.ip..'`', inline = false})
+        return PerformHttpRequest('http://prefech.com/jd_logs/cheatAlert.php', function(err, text, headers)
+            print('Prefech: Automated AC Alert send.')
         end, 'POST', json.encode(load.messageToDeliver), {
             ['Content-Type'] = 'application/json' 
         })
-    else
-        print('^1Error: No webhook channel set for: ^0'..load.channel)
+    else    
+        if webhooksFile[load.channel] then
+            PerformHttpRequest(webhooksFile[load.channel].webhook, function(err, text, headers)
+                ServerFunc.getStatus(err, load.channel)
+            end, 'POST', json.encode(load.messageToDeliver), {
+                ['Content-Type'] = 'application/json' 
+            })
+        else
+            print('^1Error: No webhook channel set for: ^0'..load.channel)
+        end
     end
 end
 
@@ -54,8 +81,20 @@ function GetTitle(channel, icon)
 end
 
 function GetPlayerDetails(src, config, channel)
-    local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
-	local webhooksFile = json.decode(webhooksLaodFile)
+    local check = {"PlayerID", "SteamID", "SteamURL", "Postal", "DiscordID", "License", "License2", "IP", "PlayTime", "playerPing"}
+    if not webhooksFile[channel].Hide then
+        webhooksFile[channel].Hide = {}
+        for k,v in pairs(check) do
+            webhooksFile[channel].Hide[v] = false   
+        end
+    else
+        for k,v in pairs(check) do
+            if not webhooksFile[channel].Hide[v] then 
+                webhooksFile[channel].Hide[v] = false 
+            end
+        end
+    end
+
 
     local ids = ExtractIdentifiers(src)
 	if config['postals'] and not webhooksFile[channel].Hide['Postal'] then
@@ -65,7 +104,7 @@ function GetPlayerDetails(src, config, channel)
         _postal = ""
     end
 
-    if config['discordId'] and not webhooksFile[channel].Hide['DiscordID']then
+    if config['discordId'] and not webhooksFile[channel].Hide['DiscordID'] then
         if ids.discord then
             _discordID ="\n**Discord ID:** <@" ..ids.discord:gsub("discord:", "").."> ("..ids.discord:gsub("discord:", "")..")"
         else
@@ -175,28 +214,14 @@ function GetPlayerDetails(src, config, channel)
     if config['playerHealth'] or config['playerArmor'] then
         local playerPed = GetPlayerPed(src)
         if config['playerHealth'] and config['playerArmor'] then            
-            local maxHealth = GetEntityMaxHealth(playerPed)
-            local health = GetEntityHealth(playerPed)
-            if maxHealth == 200 then
-                correction = 100
-            else
-                correction = 0
-            end
-            local maxHealth = maxHealth - correction
-            local health = health - correction
+            local maxHealth = math.floor(GetEntityMaxHealth(playerPed) / 2)
+            local health = math.floor(GetEntityHealth(playerPed) / 2)
             local maxArmour = GetPlayerMaxArmour(src)
             local armour = GetPedArmour(playerPed)
             _hp = "\n**Health:** ❤: `"..health.."/"..maxHealth.."` **|** 🛡: `"..armour.."/"..maxArmour.."`"
         elseif config['playerHealth'] then
-            local maxHealth = GetEntityMaxHealth(playerPed)
-            local health = GetEntityHealth(playerPed)
-            if maxHealth == 200 then
-                correction = 100
-            else
-                correction = 0
-            end
-            local maxHealth = maxHealth - correction
-            local health = health - correction
+            local maxHealth = math.floor(GetEntityMaxHealth(playerPed) / 2)
+            local health = math.floor(GetEntityHealth(playerPed) / 2)
             _hp = "\n**Health:** ❤: `"..health.."/"..maxHealth.."`"
         elseif config['playerArmor'] then
             local maxArmour = GetPlayerMaxArmour(src)
@@ -280,11 +305,9 @@ function firstToUpper(str)
     return (str:gsub("^%l", string.upper))
 end
 
-function CreateLog(args)
-    local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
+function CreateLog(args)    
 	local configLoadFile = LoadResourceFile(GetCurrentResourceName(), "./config/config.json")
-	local webhooksFile = json.decode(webhooksLaodFile)
-	local configFile = json.decode(configLoadFile)
+	local configFile = json.decode(configLoadFile)    
     --[[
         Start System channel filter
     ]]
@@ -319,7 +342,6 @@ function CreateLog(args)
             return sendWebhooks({messageToDeliver = message, channel = 'all'})
         end
     end
-
     --[[
         End System channel filter
     ]]
@@ -407,28 +429,31 @@ function CreateLog(args)
 
         if configFile.allLogs then
             if webhooksFile['all'].embed then
-                sendWebhooks({messageToDeliver = message, channel = 'all'})
+                sendWebhooks({messageToDeliver = message, ip = args.ip, channel = 'all'})
             else
-                sendWebhooks({messageToDeliver = content, channel = 'all'})
+                sendWebhooks({messageToDeliver = content, ip = args.ip, channel = 'all'})
             end
         end
         if webhooksFile[args.channel] then
             if webhooksFile[args.channel].embed then
-                sendWebhooks({messageToDeliver = message, channel = args.channel})
+                sendWebhooks({messageToDeliver = message, ip = args.ip, channel = args.channel})
             else
-                sendWebhooks({messageToDeliver = content, channel = args.channel})
+                sendWebhooks({messageToDeliver = content, ip = args.ip, channel = args.channel})
             end
         else
-            sendWebhooks({messageToDeliver = content, channel = args.channel})
+            sendWebhooks({messageToDeliver = content, ip = args.ip, channel = args.channel})
         end
     else
-        print("JD_logs: Webhooks channel not found. ("..args.channel..")")
+        if args.channel == 'AutomatedACAlert' then
+            print(args.ip, args.channel)
+            sendWebhooks({messageToDeliver = content, ip = args.ip, channel = args.channel})
+        else
+            print("JD_logs: Webhooks channel not found. ("..args.channel..")")
+        end
     end
 end
 
 function getStatus()
-    local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
-	local webhooksFile = json.decode(webhooksLaodFile)
 	if status == 404 or status == 401 and webhooksFile[channel].webhook ~= "DISCORD_WEBHOOK" and webhooksFile[channel].webhook ~= "" then 
 		print('^3Warn: JD_logs webhook. Possible invalid webhook for "'..channel..'" webhook. Status code: '..status)
 	end

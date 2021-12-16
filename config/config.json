@@ -1,4 +1,8 @@
 {
+    "locals": "en",
+
+    "EnableAcFunctions": true,
+    
     "allLogs": true,
     "postals": true,
     "weaponLog": true,

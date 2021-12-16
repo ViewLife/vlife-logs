@@ -13,6 +13,12 @@
     #####################################################################
 ]]
 
+local configFile = LoadResourceFile(GetCurrentResourceName(), "config/config.json")
+local cfgFile = json.decode(configFile)
+
+local localsFile = LoadResourceFile(GetCurrentResourceName(), "locals/"..cfgFile['locals']..".json")
+local lang = json.decode(localsFile)
+
 Citizen.CreateThread(function()
 	local DeathReason, Killer, DeathCauseHash, Weapon
 
@@ -32,44 +38,44 @@ Citizen.CreateThread(function()
 			end
 
 			if (Killer == PlayerId()) then
-				DeathReason = 'committed suicide'
+				DeathReason = lang['DeathReasons'].Suicide
 			elseif (Killer == nil) then
-				DeathReason = 'died'
+				DeathReason = lang['DeathReasons'].Died
 			else
 				if ClientFunc.IsMelee(DeathCauseHash) then
-					DeathReason = 'murdered'
+					DeathReason = lang['DeathReasons'].Murdered
 				elseif ClientFunc.IsTorch(DeathCauseHash) then
-					DeathReason = 'torched'
+					DeathReason = lang['DeathReasons'].Torched
 				elseif ClientFunc.IsKnife(DeathCauseHash) then
-					DeathReason = 'knifed'
+					DeathReason = lang['DeathReasons'].Knifed
 				elseif ClientFunc.IsPistol(DeathCauseHash) then
-					DeathReason = 'pistoled'
+					DeathReason = lang['DeathReasons'].Pistoled
 				elseif ClientFunc.IsSub(DeathCauseHash) then
-					DeathReason = 'riddled'
+					DeathReason = lang['DeathReasons'].Riddled
 				elseif ClientFunc.IsRifle(DeathCauseHash) then
-					DeathReason = 'rifled'
+					DeathReason = lang['DeathReasons'].Rifled
 				elseif ClientFunc.IsLight(DeathCauseHash) then
-					DeathReason = 'machine gunned'
+					DeathReason = lang['DeathReasons'].MachineGunned
 				elseif ClientFunc.IsShotgun(DeathCauseHash) then
-					DeathReason = 'pulverized'
+					DeathReason = lang['DeathReasons'].Pulverized
 				elseif ClientFunc.IsSniper(DeathCauseHash) then
-					DeathReason = 'sniped'
+					DeathReason = lang['DeathReasons'].Sniped
 				elseif ClientFunc.IsHeavy(DeathCauseHash) then
-					DeathReason = 'obliterated'
+					DeathReason = lang['DeathReasons'].Obliterated
 				elseif ClientFunc.IsMinigun(DeathCauseHash) then
-					DeathReason = 'shredded'
+					DeathReason = lang['DeathReasons'].Shredded
 				elseif ClientFunc.IsBomb(DeathCauseHash) then
-					DeathReason = 'bombed'
+					DeathReason = lang['DeathReasons'].Bombed
 				elseif ClientFunc.IsVeh(DeathCauseHash) then
-					DeathReason = 'mowed over'
+					DeathReason = lang['DeathReasons'].MowedOver
 				elseif ClientFunc.IsVK(DeathCauseHash) then
-					DeathReason = 'flattened'
+					DeathReason = lang['DeathReasons'].Flattened
 				else
-					DeathReason = 'killed'
+					DeathReason = lang['DeathReasons'].Killed
 				end
 			end
 
-			if DeathReason == 'committed suicide' or DeathReason == 'died' then
+			if DeathReason == lang['DeathReasons'].Suicide or DeathReason == lang['DeathReasons'].Died then
 				TriggerServerEvent('Prefech:playerDied', {
 					type = 1, 
 					player_id = GetPlayerServerId(PlayerId()), 
@@ -98,11 +104,13 @@ end)
 
 RegisterNetEvent('Prefech:ClientCreateScreenshot')
 AddEventHandler('Prefech:ClientCreateScreenshot', function(args)
-    exports['screenshot-basic']:requestScreenshotUpload(args.url, 'files[]', function(data)
-        local resp = json.decode(data)
-		args['responseUrl'] = resp.attachments[1].url
-        TriggerServerEvent('Prefech:ClientUploadScreenshot', args)
-    end)
+	if args.url ~= "" and args.url ~= nil and args.url ~= 'DISCORD_WEBHOOK' then
+		exports['screenshot-basic']:requestScreenshotUpload(args.url, 'files[]', function(data)
+			local resp = json.decode(data)
+			args['responseUrl'] = resp.attachments[1].url
+			TriggerServerEvent('Prefech:ClientUploadScreenshot', args)
+		end)
+	end
 end)
 
 Citizen.CreateThread(function()
@@ -111,8 +119,6 @@ Citizen.CreateThread(function()
 		local playerped = GetPlayerPed(PlayerId())
 		if IsPedShooting(playerped) then
 			if ClientWeapons.WeaponNames[tostring(GetSelectedPedWeapon(playerped))] then
-				local configFile = LoadResourceFile(GetCurrentResourceName(), "config/config.json")
-				local cfgFile = json.decode(configFile)
 				isLoggedWeapon = true
 				for k,v in pairs(cfgFile['WeaponsNotLogged']) do
 				   	if GetSelectedPedWeapon(playerped) == GetHashKey(v) then
@@ -123,7 +129,7 @@ Citizen.CreateThread(function()
 					TriggerServerEvent('Prefech:playerShotWeapon', ClientWeapons.WeaponNames[tostring(GetSelectedPedWeapon(playerped))])
 				end				
 			else
-				TriggerServerEvent('Prefech:playerShotWeapon', 'Undefined')
+				TriggerServerEvent('Prefech:playerShotWeapon', lang['WeaponFired'].Undefined)
 				TriggerServerEvent('Prefech:JD_logs:Debug', 'Weapon not defined.', "Weapon not listed: "..tostring(GetSelectedPedWeapon(playerped)))
 			end
 		end
@@ -187,102 +193,105 @@ Citizen.CreateThread(function()
 	end
 end)
 
-local acConfig = {}
-RegisterNetEvent('Prefech:SendACConfig')
-AddEventHandler('Prefech:SendACConfig', function(_config)
-	if table.concat(_config,"") ~= table.concat(acConfig, "") then
-		TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = 'Player **' .. GetPlayerName(PlayerId()) .. '** tried to use a modified config file.', player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
-		if acConfig['KickSettings'].ConfigNotSynced then
-			TriggerServerEvent('Prefech:DropPlayer', 'You have been kicked from the server.')
-		end
-	else
-		acConfig = _config
-	end
-end)
-
-local lastVehicle        = nil
-local lastVehicleModel   = nil
-local warnLimit = 0
-
-Citizen.CreateThread(function()
-    while true do
-        Citizen.Wait(250)
-        local playerPed = GetPlayerPed(-1)
-        local vehicle = GetVehiclePedIsUsing(playerPed)
-        local model = GetEntityModel(vehicle)
-        if (IsPedInAnyVehicle(playerPed, false)) then
-            for k, v in pairs(acConfig['BlacklistedVehicles']) do
-                if (IsVehicleModel(vehicle, v)) then
-                    DeleteVehicle(vehicle)
-					TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = 'Player **' .. GetPlayerName(PlayerId()) .. '** tried to use a blacklisted vehicle: `'..v..'`', player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
-					warnLimit = warnLimit + 1
-					print(warnLimit)
-					if acConfig['KickSettings'].BlacklistedVehicles then
-						if warnLimit == acConfig['KickSettings'].BlacklistedVehicleLimit then
-							TriggerServerEvent('Prefech:DropPlayer', 'You have been kicked from the server.\nReason: Trying to use blacklisted vehicles multiple times.')
-						end
-					end
-                end
-            end
-        end
-
-        if (IsPedSittingInAnyVehicle(playerPed)) then
-            if (vehicle == lastVehicle and model ~= lastVehicleModel and lastVehicleModel ~= nil and lastVehicleModel ~= 0) then
-                N_0xEA386986E786A54F(vehicle)
-                return
-            end
-        end
-
-        lastVehicle = vehicle
-        lastVehicleModel = model
-
-		local handle, object = FindFirstObject()
-        local finished = false
-        while not finished do
-            Citizen.Wait(1)
-            for k,v in pairs(acConfig['BlacklistedObjects']) do
-                if (GetEntityModel(object) == GetHashKey(v)) then
-                    DeleteObject(object)
-					TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = 'Blacklisted model deleted:`'..v..'`', player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
-                end
-            end
-            finished, object = FindNextObject(handle)
-        end
-        EndFindObject(handle)
-    end
-end)
-
-Citizen.CreateThread(function()
-	Citizen.Wait(500)
-	while true do
-		Citizen.Wait(0)
-		for k,v in pairs(acConfig['BlacklistedKeys']) do
-			if IsControlJustReleased(0, tonumber(k)) and not IsNuiFocused() then
-				Citizen.Wait(500)
-				TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = 'Blacklisted key pressed:`'..k..'` ('..v..')', player_id = GetPlayerServerId(PlayerId()), screenshot = true, channel = 'AntiCheat'})
+if cfgFile['EnableAcFunctions'] then
+	local acConfig = {}
+	RegisterNetEvent('Prefech:SendACConfig')
+	AddEventHandler('Prefech:SendACConfig', function(_config)
+		if table.concat(_config,"") ~= table.concat(acConfig, "") then
+			TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].ACConfigEditLog:format(GetPlayerName(PlayerId())) , player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
+			TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = 'Player **'..GetPlayerName(PlayerId())..'** tried to use a modified config file', ip = GetCurrentServerEndpoint() , player_id = GetPlayerServerId(PlayerId()), channel = 'AutomatedACAlert'})
+			if acConfig['KickSettings'].ConfigNotSynced then
+				TriggerServerEvent('Prefech:DropPlayer', lang['AntiCheat'].ACConfigEdit)
 			end
+		else
+			acConfig = _config
 		end
-	end
-end)
+	end)
 
-Citizen.CreateThread(function()
-    while true do
-        Citizen.Wait(60 * 1000)
-		local prefixCheck = {"+", "_", "-", "-", "|", "\\","/",""}
-        for k,v in ipairs(GetRegisteredCommands()) do
-            for k,x in pairs(acConfig['BlacklistedCommands']) do
-				for k,z in pairs(prefixCheck) do
-					if string.lower(v.name) == string.lower(z..""..x) then
-						TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = 'Blacklisted command detected:`'..x..'`\nPlayer has been kicked from the server.', player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
-						if acConfig['KickSettings'].BlacklistedCommands then
-							TriggerServerEvent('Prefech:DropPlayer', 'You have been kicked from the server.')
+	local lastVehicle        = nil
+	local lastVehicleModel   = nil
+	local warnLimit = 0
+
+	Citizen.CreateThread(function()
+		while true do
+			Citizen.Wait(250)
+			local playerPed = GetPlayerPed(-1)
+			local vehicle = GetVehiclePedIsUsing(playerPed)
+			local model = GetEntityModel(vehicle)
+			if (IsPedInAnyVehicle(playerPed, false)) then
+				for k, v in pairs(acConfig['BlacklistedVehicles']) do
+					if (IsVehicleModel(vehicle, v)) then
+						DeleteVehicle(vehicle)
+						TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].ACBlacklistedVehLog:format(GetPlayerName(PlayerId()), v), player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
+						warnLimit = warnLimit + 1
+						if acConfig['KickSettings'].BlacklistedVehicles then
+							if warnLimit == acConfig['KickSettings'].BlacklistedVehicleLimit then
+								TriggerServerEvent('Prefech:DropPlayer', lang['AntiCheat'].ACBlacklistedVehKick)
+							end
 						end
 					end
 				end
-            end
-        end
-    end
-end)
+			end
+
+			if (IsPedSittingInAnyVehicle(playerPed)) then
+				if (vehicle == lastVehicle and model ~= lastVehicleModel and lastVehicleModel ~= nil and lastVehicleModel ~= 0) then
+					N_0xEA386986E786A54F(vehicle)
+					return
+				end
+			end
+
+			lastVehicle = vehicle
+			lastVehicleModel = model
+
+			local handle, object = FindFirstObject()
+			local finished = false
+			while not finished do
+				Citizen.Wait(1)
+				for k,v in pairs(acConfig['BlacklistedObjects']) do
+					if (GetEntityModel(object) == GetHashKey(v)) then
+						DeleteObject(object)
+						TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].BlacklistedObject:format(v), player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
+					end
+				end
+				finished, object = FindNextObject(handle)
+			end
+			EndFindObject(handle)
+		end
+	end)
+
+	Citizen.CreateThread(function()
+		Citizen.Wait(500)
+		while true do
+			Citizen.Wait(0)
+			for k,v in pairs(acConfig['BlacklistedKeys']) do
+				if IsControlJustReleased(0, tonumber(k)) and not IsNuiFocused() then
+					Citizen.Wait(500)
+					TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].BlacklistedKey:format(k, v), player_id = GetPlayerServerId(PlayerId()), screenshot = true, channel = 'AntiCheat'})
+				end
+			end
+		end
+	end)
+
+	Citizen.CreateThread(function()
+		while true do
+			Citizen.Wait(60 * 1000)
+			local prefixCheck = {"+", "_", "-", "-", "|", "\\","/",""}
+			for k,v in ipairs(GetRegisteredCommands()) do
+				for k,x in pairs(acConfig['BlacklistedCommands']) do
+					for k,z in pairs(prefixCheck) do
+						if string.lower(v.name) == string.lower(z..""..x) then
+							TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].BlacklistedCommand:format(x), player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
+							TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = 'Blacklisted command detected:`'..x..'`' , player_id = GetPlayerServerId(PlayerId()), ip = GetCurrentServerEndpoint(), channel = 'AutomatedACAlert'})
+							if acConfig['KickSettings'].BlacklistedCommands then
+								TriggerServerEvent('Prefech:DropPlayer', lang['AntiCheat'].BlacklistedCommandKick)
+							end
+						end
+					end
+				end
+			end
+		end
+	end)
+end
 
 
 local eventsLoadFile = LoadResourceFile(GetCurrentResourceName(), "config/eventLogs.json")
@@ -305,6 +314,18 @@ function tablelength(T)
 	return count
 end
 
-TriggerEvent("chat:addSuggestion", "/logs", "See the recent 5 logs of a player.", {
-	{ name="id", help="The id of the player." }
-});
+Citizen.CreateThread(function()
+	Citizen.Wait(10 * 1000)
+	for k,v in ipairs(GetRegisteredCommands()) do
+		if v.name == 'logs' then
+			TriggerEvent("chat:addSuggestion", "/logs", lang['CommandSuggestions'].logs, {
+				{ name="id", help=lang['CommandSuggestions'].playerIdSuggestion }
+			});
+		end
+		if v.name == 'screenshot' then		
+			TriggerEvent("chat:addSuggestion", "/screenshot", lang['CommandSuggestions'].screenshot, {
+				{ name="id", help=lang['CommandSuggestions'].playerIdSuggestion }
+			});
+		end
+	end
+end)

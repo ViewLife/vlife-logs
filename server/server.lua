@@ -228,7 +228,9 @@ AddEventHandler('Prefech:sendClientLogStorage', function(_storage)
 	storage = _storage
 end)
 
-function LogHostoryCommand(source, args, RawCommand)
+Commands= {}
+
+Commands.LogHistoryCommand = function(source, args, RawCommand)
 	if GetResourceState('Prefech_Notify') == "started" then
 		if IsPlayerAceAllowed(source, cfgFile.logHistoryPerms) then
 			if tonumber(args[1]) then
@@ -276,7 +278,7 @@ function LogHostoryCommand(source, args, RawCommand)
 	end
 end
 
-function ScreenshotCommand(source, args, RawCommand)
+Commands.ScreenshotCommand = function(source, args, RawCommand)
 	if GetResourceState('Prefech_Notify') == "started" then
 		if IsPlayerAceAllowed(source, cfgFile.screenshotPerms) then
 			if args[1] and has_val(GetPlayers(), args[1]) then
@@ -319,6 +321,10 @@ function ScreenshotCommand(source, args, RawCommand)
 	else
 		errorLog('Prefech_Notify is not installed.')
 	end
+end
+
+for k,v in pairs(cfgFile['Commands']) do
+	RegisterCommand(k, Commands[v])
 end
 
 function tablelength(T)

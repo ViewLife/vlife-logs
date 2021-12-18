@@ -48,7 +48,7 @@
     ],
 
     "Commands": {
-        "logs": "LogHostoryCommand",
+        "logs": "LogHistoryCommand",
         "screenshot": "ScreenshotCommand"
     }
 }

@@ -145,6 +145,19 @@ AddEventHandler("playerJoining", function(source, oldID)
 			ServerFunc.CreateLog({EmbedMessage = lang['Other'].NoSteamLog:format(GetPlayerName(source)), player_id = source, channel = 'nameChange'})
 		end
 	end
+
+	if IsPlayerAceAllowed(source, cfgFile['logHistoryPerms']) then
+		TriggerClientEvent("chat:addSuggestion", source, "/logs", "See the recent 5 logs of a player.", {
+			{ name="id", help="The id of the player." }
+		});
+	end
+	
+	if IsPlayerAceAllowed(source, cfgFile['screenshotPerms']) then
+		TriggerClientEvent("chat:addSuggestion", source, "/screenshot", "Screenshot the clients game.", {
+			{ name="id", help="The id of the player." }
+		});
+	end
+
 end)
 
 AddEventHandler('playerDropped', function(reason)

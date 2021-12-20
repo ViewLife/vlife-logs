@@ -17,6 +17,9 @@ local JD_Debug = false -- Enable when you have issues or when asked by Prefech S
 local configFile = LoadResourceFile(GetCurrentResourceName(), "./config/config.json")
 local cfgFile = json.decode(configFile)
 
+local localsFile = LoadResourceFile(GetCurrentResourceName(), "locals/"..cfgFile['locals']..".json")
+local lang = json.decode(localsFile)
+
 RegisterNetEvent('Prefech:JD_logs:Debug')
 AddEventHandler('Prefech:JD_logs:Debug', log)
 
@@ -92,17 +95,17 @@ AddEventHandler("playerConnecting", function(name, setReason, deferrals)
 			for k,v in pairs(globalBansFile) do
 				for a,b in pairs(ids) do
 					if has_val(v.Identifiers, b) then
-						if not v.Lifted then	
+						if not v.Lifted then
 							setReason('\nPrefech | Global Banned.\nReason: '..v.BanReason..'\nUUID: '..k..'\nTo appeal this ban please join our discord: https://discord.gg/prefech')
 							CancelEvent()
-							return ServerFunc.CreateLog({ description = '**' ..GetPlayerName(source).. '** tried to connect to your server but is global banned.\n**Ban UUID:** `'..k..'`\n**Ban reason:** `'..v.BanReason..'`', isBanned = true, channel = 'system'})
+							return ServerFunc.CreateLog({ description = lang['DefaultLogs'].GlobalBan:format(GetPlayerName(source), k, v.BanReason), isBanned = true, channel = 'system'})
 						end
 					end
 				end
 			end
 		end
-	end
-	ServerFunc.CreateLog({EmbedMessage = '**' ..GetPlayerName(source).. '** is connecting to the server.', player_id = source, channel = 'joins'})
+	end	
+	ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].Join:format(GetPlayerName(source)), player_id = source, channel = 'joins'})
 end)
 
 AddEventHandler("playerJoining", function(source, oldID)
@@ -116,30 +119,30 @@ AddEventHandler("playerJoining", function(source, oldID)
 				for _, i in ipairs(GetPlayers()) do
 					if IsPlayerAceAllowed(i, cfgFile.nameChangePerms) then 
 						TriggerClientEvent('chat:addMessage', i, {
-							template = '<div style="background-color: rgba(90, 90, 90, 0.9); text-align: center; border-radius: 0.5vh; padding: 0.7vh; font-size: 1.7vh;"><b>Player ^1{0} ^0used to be named ^1{1}</b></div>',
-							args = { GetPlayerName(source), loadedFile[ids.steam] }
+							template = '<div style="background-color: rgba(90, 90, 90, 0.9); text-align: center; border-radius: 0.5vh; padding: 0.7vh; font-size: 1.7vh;"><b>Player ^1{0} ^0{1} ^1{2}</b></div>',
+							args = { lang['DefaultLogs'].NameChangeChat:format(GetPlayerName(source), loadedFile[ids.steam]) }
 						})
 					end
 				end
-				ServerFunc.CreateLog({EmbedMessage = 'Player **' .. GetPlayerName(source) .. '** used to be named **' ..loadedFile[ids.steam]..'**', player_id = source, channel = 'nameChange'})
+				ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].NameChange, player_id = source, channel = 'nameChange'})
 			end
 		end
 		loadedFile[ids.steam] = GetPlayerName(source)
 		SaveResourceFile(GetCurrentResourceName(), "./json/names.json", json.encode(loadedFile), -1)
 	else
 		if cfgFile.forceSteam then
-			ServerFunc.CreateLog({EmbedMessage = 'Disonnected player **' .. GetPlayerName(source) .. '** for not having steam active.', player_id = source, channel = 'nameChange'})
-			DropPlayer(source, "Please start steam and reconnect to the server.")
+			ServerFunc.CreateLog({EmbedMessage = lang['Other'].ForceSteamLog, player_id = source, channel = 'nameChange'})
+			DropPlayer(source, lang['Other'].ForceSteam)
 		else
 			for _, i in ipairs(GetPlayers()) do
 				if IsPlayerAceAllowed(i, cfgFile.nameChangePerms) then 
 					TriggerClientEvent('chat:addMessage', i, {
-						template = '<div style="background-color: rgba(90, 90, 90, 0.9); text-align: center; border-radius: 0.5vh; padding: 0.7vh; font-size: 1.7vh;"><b>Player ^1{0} ^0is connecting wihout a steam id.</b></div>',
-						args = { GetPlayerName(source) }
+						template = '<div style="background-color: rgba(90, 90, 90, 0.9); text-align: center; border-radius: 0.5vh; padding: 0.7vh; font-size: 1.7vh;"><b>Player ^1{0} ^0{1}</b></div>',
+						args = { GetPlayerName(source), lang['Other'].NoSteam }
 					})
 				end
 			end
-			ServerFunc.CreateLog({EmbedMessage = 'Player **' .. GetPlayerName(source) .. '** does not have steam active and we can\'t log their name.', player_id = source, channel = 'nameChange'})
+			ServerFunc.CreateLog({EmbedMessage = lang['Other'].NoSteamLog:format(GetPlayerName(source)), player_id = source, channel = 'nameChange'})
 		end
 	end
 
@@ -158,7 +161,7 @@ AddEventHandler("playerJoining", function(source, oldID)
 end)
 
 AddEventHandler('playerDropped', function(reason)
-	ServerFunc.CreateLog({EmbedMessage = '**' ..GetPlayerName(source).. '** has left the server. (Reason: ' .. reason .. ')', player_id = source, channel = 'leaving'})
+	ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].Left:format(GetPlayerName(source), reason), player_id = source, channel = 'leaving'})
 end)
 
 AddEventHandler('chatMessage', function(source, name, msg)
@@ -192,8 +195,8 @@ end)
 
 RegisterServerEvent('Prefech:playerShotWeapon')
 AddEventHandler('Prefech:playerShotWeapon', function(weapon)
-	if configFile['weaponLog'] then
-		ServerFunc.CreateLog({EmbedMessage = '**' .. GetPlayerName(source)  .. '** fired a `' .. weapon .. '`', player_id = source, channel = 'shooting'})
+	if cfgFile['weaponLog'] then
+		ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].Shooting:format(GetPlayerName(source), weapon), player_id = source, channel = 'shooting'})
     end
 end)
 
@@ -204,7 +207,7 @@ AddEventHandler('explosionEvent', function(source, ev)
     else
         ev.explosionType = explosionTypes[ev.explosionType + 1]
     end
-    ServerFunc.CreateLog({EmbedMessage = '**' .. GetPlayerName(source)  .. '** created a explosion `' .. ev.explosionType .. '`', player_id = source, channel = 'explosion'})
+    ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].Explosion:format(GetPlayerName(source), ev.explosionType), player_id = source, channel = 'explosion'})
 end)
 
 RegisterServerEvent('Prefech:ClientDiscord')
@@ -224,12 +227,12 @@ AddEventHandler('Prefech:ClientDiscord', function(args)
 end)
 
 AddEventHandler('onResourceStop', function (resourceName)
-	ServerFunc.CreateLog({EmbedMessage = '**' .. resourceName .. '** has been stopped.', channel = 'resources'})
+	ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].ResourceStop:format(resourceName), channel = 'resources'})
 end)
 
 AddEventHandler('onResourceStart', function (resourceName)
     Citizen.Wait(100)
-	ServerFunc.CreateLog({EmbedMessage = '**' .. resourceName .. '** has been started.', channel = 'resources'})
+	ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].ResourceStart:format(resourceName), channel = 'resources'})
 end)  
 
 local storage = nil
@@ -238,8 +241,9 @@ AddEventHandler('Prefech:sendClientLogStorage', function(_storage)
 	storage = _storage
 end)
 
-Commands = {}
-Commands.LogHostoryCommand = function(source, args, RawCommand)
+Commands= {}
+
+Commands.LogHistoryCommand = function(source, args, RawCommand)
 	if GetResourceState('Prefech_Notify') == "started" then
 		if IsPlayerAceAllowed(source, cfgFile.logHistoryPerms) then
 			if tonumber(args[1]) then
@@ -248,7 +252,7 @@ Commands.LogHostoryCommand = function(source, args, RawCommand)
 				if tablelength(storage) == 0 then
 					exports.Prefech_Notify:Notify({
 						title = "Recent logs for: "..GetPlayerName(args[1]).." (0)",
-						message = "No logs avalible.",
+						message = lang['Commands']['LogHistory'].NoLogs,
 						color = "#93CAED",
 						target = source,
 						timeout = 15
@@ -256,7 +260,7 @@ Commands.LogHostoryCommand = function(source, args, RawCommand)
 				else
 					for k,v in pairs(storage) do
 						exports.Prefech_Notify:Notify({
-							title = "Recent logs for: "..GetPlayerName(args[1]).." ("..k..")",
+							title = lang['Commands']['LogHistory'].Success:format(GetPlayerName(args[1]), k),
 							message = "Channel: "..v.Channel.."\nMessage: "..v.Message:gsub("**",""):gsub("`","").."\nTimeStamp: "..v.TimeStamp,
 							color = "#93CAED",
 							target = source,
@@ -267,7 +271,7 @@ Commands.LogHostoryCommand = function(source, args, RawCommand)
 			else
 				exports.Prefech_Notify:Notify({
 					title = "Error!",
-					message = "Invalid player ID",
+					message = lang['Commands']['LogHistory'].InvalidId,
 					color = "#93CAED",
 					target = source,
 					timeout = 15
@@ -276,7 +280,7 @@ Commands.LogHostoryCommand = function(source, args, RawCommand)
 		else
 			exports.Prefech_Notify:Notify({
 				title = "Error!",
-				message = "You don't have permission to use this command",
+				message = lang['Commands']['LogHistory'].InvalidPerms,
 				color = "#93CAED",
 				target = source,
 				timeout = 15
@@ -295,12 +299,12 @@ Commands.ScreenshotCommand = function(source, args, RawCommand)
 					local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
 					local webhooksFile = json.decode(webhooksLaodFile)
 					args['url'] = webhooksFile['imageStore'].webhook
-					args['EmbedMessage'] = "**Screenshot of:** "..GetPlayerName(args[1]).." (ID: "..args[1]..")\n**Requested by:** "..GetPlayerName(source).." (ID: "..source..")"
+					args['EmbedMessage'] = lang['Commands']['Screenshot'].Log:format(GetPlayerName(args[1]), args[1], GetPlayerName(source), source)
 					args['channel'] = "screenshot"
 					TriggerClientEvent('Prefech:ClientCreateScreenshot', args[1], args)
 					exports.Prefech_Notify:Notify({
 						title = "Success!",
-						message = "The screenshot of "..GetPlayerName(args[1]).." was posted on discord!",
+						message = lang['Commands']['Screenshot'].Success:format(GetPlayerName(args[1])),
 						color = "#93CAED",
 						target = source,
 						timeout = 15
@@ -311,7 +315,7 @@ Commands.ScreenshotCommand = function(source, args, RawCommand)
 			else
 				exports.Prefech_Notify:Notify({
 					title = "Error!",
-					message = "The player ID provided is invalid or not a active player.",
+					message = lang['Commands']['Screenshot'].InvalidId,
 					color = "#93CAED",
 					target = source,
 					timeout = 15
@@ -321,7 +325,7 @@ Commands.ScreenshotCommand = function(source, args, RawCommand)
 		else
 			exports.Prefech_Notify:Notify({
 				title = "Error!",
-				message = "You don't have permission to use this command",
+				message = lang['Commands']['Screenshot'].InvalidPerms,
 				color = "#93CAED",
 				target = source,
 				timeout = 15
@@ -394,7 +398,7 @@ end)
 
 RegisterNetEvent('Prefech:DropPlayer')
 AddEventHandler('Prefech:DropPlayer', function(reason)
-	local configFile = LoadResourceFile(GetCurrentResourceName(), "./config/ac_config.json")
+	local configFile = LoadResourceFile(GetCurrentResourceName(), "./config/config.json")
 	local cfgFile = json.decode(configFile)
 	if not IsPlayerAceAllowed(source, cfgFile['AntiCheatBypass']) then
 		DropPlayer(source, 'Automated kick: '..reason)

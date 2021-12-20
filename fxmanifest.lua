@@ -13,7 +13,7 @@
     #####################################################################
 ]]
 
-version '2.1.5'
+version '2.1.6'
 author 'Prefech'
 description 'FXServer logs to Discord (https://prefech.com/)'
 repository 'https://github.com/prefech/JD_logs'
@@ -33,7 +33,8 @@ client_scripts {
 
 files {
     'config/eventLogs.json',
-    'config/config.json'
+    'config/config.json',
+    'locals/*.json'
 }
 
 game 'gta5'

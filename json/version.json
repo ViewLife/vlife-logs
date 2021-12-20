@@ -1,5 +1,5 @@
 {
     "date": "Dec 19, 2021",
-    "version": "2.1.6",
-    "changelog": "Added:\n• Language Files.\n• Check for hide functions.\n• German Translation: randomwhitedude#4811 \n• French Translation: Skafir#5135\n\nFixed:\n• Issue with commands not registering.\n• Typo in `LogHistoryCommand`.\n• Issue with shooting logs.\n• Issue with AC Config functions.\n• Issue with player Health."
+    "version": "2.1.7.1",
+    "changelog": "Added:\n• Spanish Translation: JohnHeatz#1337.\n• Polish  Translation: Szefit0#7907.\n\nFixed:\n• ISsue with ac config not loading."
 }

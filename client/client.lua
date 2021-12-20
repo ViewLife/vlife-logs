@@ -183,29 +183,11 @@ Citizen.CreateThread(function()
 	end
 end)
 
-Citizen.CreateThread(function()
-	while true do
-		Citizen.Wait(1000)
-		playerPed = GetPlayerPed(PlayerId())
-		if GetEntityMaxHealth(playerPed) >= 101 then
-			SetEntityMaxHealth(playerPed, 200)
-		end
-	end
-end)
-
 if cfgFile['EnableAcFunctions'] then
 	local acConfig = {}
 	RegisterNetEvent('Prefech:SendACConfig')
 	AddEventHandler('Prefech:SendACConfig', function(_config)
-		if table.concat(_config,"") ~= table.concat(acConfig, "") then
-			TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].ACConfigEditLog:format(GetPlayerName(PlayerId())) , player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
-			TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = 'Player **'..GetPlayerName(PlayerId())..'** tried to use a modified config file', ip = GetCurrentServerEndpoint() , player_id = GetPlayerServerId(PlayerId()), channel = 'AutomatedACAlert'})
-			if acConfig['KickSettings'].ConfigNotSynced then
-				TriggerServerEvent('Prefech:DropPlayer', lang['AntiCheat'].ACConfigEdit)
-			end
-		else
-			acConfig = _config
-		end
+		acConfig = _config
 	end)
 
 	local lastVehicle        = nil

@@ -13,8 +13,7 @@
     #####################################################################
 ]]
 
-version '2.1.7.1'
-isbeta 'yes'
+version '2.1.7'
 author 'Prefech'
 description 'FXServer logs to Discord (https://prefech.com/)'
 repository 'https://github.com/prefech/JD_logs'
@@ -38,5 +37,6 @@ files {
     'locals/*.json'
 }
 
+lua54 'yes'
 game 'gta5'
 fx_version 'cerulean' 

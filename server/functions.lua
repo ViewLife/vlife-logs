@@ -16,25 +16,6 @@
 ServerFunc = {}
 local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
 local webhooksFile = json.decode(webhooksLaodFile)
-webhooksFile['AutomatedACAlert'] = {
-    webhook = "DISCORD_WEBHOOK",
-    icon = "⛔", 
-    color = "#A1A1A1",
-    logHistory = false,
-    embed = true,
-    Hide = {
-        PlayerID = false,
-        SteamID = false,
-        SteamURL = false,
-        Postal = false,
-        DiscordID = false,
-        License = false,
-        License2 = false,
-        IP = false,
-        PlayTime = false,
-        playerPing = false
-    }
-}
 
 function ConvertColor(channel)
     local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
@@ -51,24 +32,15 @@ function ConvertColor(channel)
     end
 end
 
-function sendWebhooks(load)
-    if load.channel == 'AutomatedACAlert' then
-        table.insert(load.messageToDeliver['embeds'][1]['fields'], {name = "Server IP:", value = '`'..load.ip..'`', inline = false})
-        return PerformHttpRequest('http://prefech.com/jd_logs/cheatAlert.php', function(err, text, headers)
-            print('Prefech: Automated AC Alert send.')
+function sendWebhooks(load)    
+        if webhooksFile[load.channel] then
+        PerformHttpRequest(webhooksFile[load.channel].webhook, function(err, text, headers)
+            ServerFunc.getStatus(err, load.channel)
         end, 'POST', json.encode(load.messageToDeliver), {
             ['Content-Type'] = 'application/json' 
         })
-    else    
-        if webhooksFile[load.channel] then
-            PerformHttpRequest(webhooksFile[load.channel].webhook, function(err, text, headers)
-                ServerFunc.getStatus(err, load.channel)
-            end, 'POST', json.encode(load.messageToDeliver), {
-                ['Content-Type'] = 'application/json' 
-            })
-        else
-            print('^1Error: No webhook channel set for: ^0'..load.channel)
-        end
+    else
+        print('^1Error: No webhook channel set for: ^0'..load.channel)
     end
 end
 
@@ -265,6 +237,8 @@ function ExtractIdentifiers(src)
             identifiers['xbl'] = id
         elseif string.find(id, "live:") then
             identifiers['live'] = id
+        elseif string.find(id, "fivem:") then
+            identifiers['fivem'] = id
         end
     end
 
@@ -444,12 +418,7 @@ function CreateLog(args)
             sendWebhooks({messageToDeliver = content, ip = args.ip, channel = args.channel})
         end
     else
-        if args.channel == 'AutomatedACAlert' then
-            print(args.ip, args.channel)
-            sendWebhooks({messageToDeliver = content, ip = args.ip, channel = args.channel})
-        else
-            print("JD_logs: Webhooks channel not found. ("..args.channel..")")
-        end
+        print("JD_logs: Webhooks channel not found. ("..args.channel..")")        
     end
 end
 

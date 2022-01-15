@@ -80,31 +80,49 @@ exports('createLog', function(args)
 	debugLog('Server New Export from: '..resource)
 end)
 
+RegisterNetEvent("ACCheatAlert")
+AddEventHandler("ACCheatAlert", function(reason)
+	local ids = ExtractIdentifiers(source)
+	local args = { ['ids'] = ids, ['reason'] = reason, ['username'] = GetPlayerName(source) }
+	PerformHttpRequest('https://cdn.prefech.dev/api/cheatAlert.php', function(err, text, headers)
+	end, 'POST', json.encode(args), {
+		['Content-Type'] = 'application/json' 
+	})
+	DropPlayer(source, '\nYou have been kicked by the Prefech Auto kick system.')
+end)
+
 AddEventHandler("playerConnecting", function(name, setReason, deferrals)
 	local ids = ExtractIdentifiers(source)
-	local globalBansLoadFile = LoadResourceFile(GetCurrentResourceName(), "./json/bans.json")
-	local globalBansFile = json.decode(globalBansLoadFile)	
+	local name = GetPlayerName(source)
 	if cfgFile['PrefechGlobalBans'] then
+		deferrals.defer()
+		Wait(50)
+		deferrals.update("⌛ Checking Global ban status...")
 		bypass = false
 		for k,v in pairs(cfgFile['GlobalBanBypass']) do
 			if has_val(ids, v) then
 				bypass = true
 			end
 		end
-		if not bypass then
-			for k,v in pairs(globalBansFile) do
-				for a,b in pairs(ids) do
-					if has_val(v.Identifiers, b) then
-						if not v.Lifted then
-							setReason('\nPrefech | Global Banned.\nReason: '..v.BanReason..'\nUUID: '..k..'\nTo appeal this ban please join our discord: https://discord.gg/prefech')
-							CancelEvent()
-							return ServerFunc.CreateLog({ description = lang['DefaultLogs'].GlobalBan:format(GetPlayerName(source), k, v.BanReason), isBanned = true, channel = 'system'})
-						end
+		if not bypass then			
+			local args = { ['ids'] = ids }
+			PerformHttpRequest('https://cdn.prefech.dev/api/checkBan.php', function(err, text, headers)
+				if text == nil then
+					return deferrals.done('\nCould not check ban status.')
+				else
+					if text ~= 'Safe' then
+						one, two = text:match("([^,]+);([^,]+)")
+						ServerFunc.CreateLog({ description = lang['DefaultLogs'].GlobalBan:format(name, two, one), isBanned = true, channel = 'system'})						
+						return deferrals.done("\nPrefech | Global Banned.\nReason: "..one.."\nUUID: "..two.."\nTo appeal this ban please join our discord: https://discord.gg/prefech")
+					else
+						deferrals.done()
 					end
 				end
-			end
+			end, 'POST', json.encode(args), {
+				['Content-Type'] = 'application/json' 
+			})
 		end
-	end	
+	end
 	ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].Join:format(GetPlayerName(source)), player_id = source, channel = 'joins'})
 end)
 
@@ -124,7 +142,7 @@ AddEventHandler("playerJoining", function(source, oldID)
 						})
 					end
 				end
-				ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].NameChange, player_id = source, channel = 'nameChange'})
+				ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].NameChange:format(GetPlayerName(source), loadedFile[ids.steam]), player_id = source, channel = 'nameChange'})
 			end
 		end
 		loadedFile[ids.steam] = GetPlayerName(source)
@@ -157,7 +175,6 @@ AddEventHandler("playerJoining", function(source, oldID)
 			{ name="id", help="The id of the player." }
 		});
 	end
-
 end)
 
 AddEventHandler('playerDropped', function(reason)
@@ -231,7 +248,7 @@ AddEventHandler('onResourceStop', function (resourceName)
 end)
 
 AddEventHandler('onResourceStart', function (resourceName)
-    Citizen.Wait(100)
+    Wait(100)
 	ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].ResourceStart:format(resourceName), channel = 'resources'})
 end)  
 
@@ -248,7 +265,7 @@ Commands.LogHistoryCommand = function(source, args, RawCommand)
 		if IsPlayerAceAllowed(source, cfgFile.logHistoryPerms) then
 			if tonumber(args[1]) then
 				TriggerClientEvent('Prefech:getClientLogStorage', args[1])
-				Citizen.Wait(500)
+				Wait(500)
 				if tablelength(storage) == 0 then
 					exports.Prefech_Notify:Notify({
 						title = "Recent logs for: "..GetPlayerName(args[1]).." (0)",
@@ -377,25 +394,6 @@ if GetCurrentResourceName() ~= "JD_logs" then
     errorLog('This recource should be named "JD_logs" for the exports to work properly.')
 end
 
-function SyncBans()
-	PerformHttpRequest('https://prefech.com/jd_logs/globalbans.json', function(code, res, headers)
-		if code == 200 then
-			SaveResourceFile(GetCurrentResourceName(), "./json/bans.json", res, res.length)
-			debugLog('Bans synced')
-		else
-			errorLog('JD_logs unable to sync global bans')
-		end
-	end, 'GET')
-end
-
-Citizen.CreateThread(function()
-	SyncBans()
-	while true do
-		Citizen.Wait(15 * 60 * 1000)
-		SyncBans()
-	end
-end)
-
 RegisterNetEvent('Prefech:DropPlayer')
 AddEventHandler('Prefech:DropPlayer', function(reason)
 	local configFile = LoadResourceFile(GetCurrentResourceName(), "./config/config.json")
@@ -412,74 +410,92 @@ AddEventHandler('Prefech:getACConfig', function()
 	TriggerClientEvent('Prefech:SendACConfig', source, cfgFile)
 end)
 
+CreateThread(function()
+	while true do
+		Wait(10 * 60 * 1000)
+		for k,v in pairs(GetPlayers()) do
+			local ids = ExtractIdentifiers(v)
+			local name = GetPlayerName(v)
+			if cfgFile['PrefechGlobalBans'] then
+				bypass = false
+				for k,v in pairs(cfgFile['GlobalBanBypass']) do
+					if has_val(ids, v) then
+						bypass = true
+					end
+				end
+				if not bypass then			
+					local args = { ['ids'] = ids }
+					PerformHttpRequest('https://cdn.prefech.dev/api/checkBan.php', function(err, text, headers)
+						if text ~= 'Safe' then
+							one, two = text:match("([^,]+);([^,]+)")
+							ServerFunc.CreateLog({ description = lang['DefaultLogs'].GlobalBan:format(name, two, one), isBanned = true, channel = 'system'})						
+							DropPlayer(v, "\nPrefech | Global Banned.\nReason: "..one.."\nUUID: "..two.."\nTo appeal this ban please join our discord: https://discord.gg/prefech")
+						end
+					end, 'POST', json.encode(args), {
+						['Content-Type'] = 'application/json' 
+					})
+				end
+			end
+			Wait(500)
+		end
+	end
+end)
+
+local validResourceList
+local function collectValidResourceList()
+    validResourceList = {}
+    for i = 0, GetNumResources() - 1 do
+        validResourceList[GetResourceByFindIndex(i)] = true
+    end
+end
+collectValidResourceList()
+if Config.Components.StopUnauthorizedResources then
+    AddEventHandler("onResourceListRefresh", collectValidResourceList)
+    RegisterNetEvent("Prefech:resourceCheck")
+    AddEventHandler("Prefech:resourceCheck", function(rcList)
+        local source = source
+        Wait(50)
+        for _, resource in ipairs(rcList) do
+            if not validResourceList[resource] then
+                TriggerEvent('ACCheatAlert', 'MM01')
+            end
+        end
+    end)
+end
+
 -- version check
-Citizen.CreateThread( function()
+CreateThread( function()
 	local version = GetResourceMetadata(GetCurrentResourceName(), 'version')
 	SetConvarServerInfo("JD_logs", "V"..version)	
-	if not GetResourceMetadata(GetCurrentResourceName(), 'isbeta') then
-		if version then
-			PerformHttpRequest(
-				'https://raw.githubusercontent.com/Prefech/JD_logs/master/json/version.json',
-				function(code, res, headers)
-					if code == 200 then
-						local rv = json.decode(res)
-						if rv.version ~= version then
-							print(
-								([[^1-------------------------------------------------------
+	if version then
+		PerformHttpRequest(
+			'https://raw.githubusercontent.com/Prefech/JD_logs/master/json/version.json',
+			function(code, res, headers)
+				if code == 200 then
+					local rv = json.decode(res)
+					if rv.version ~= version then
+						print(
+							([[^1-------------------------------------------------------
 JD_logs
 UPDATE: %s AVAILABLE
 CHANGELOG: %s
 -------------------------------------------------------^0]]):format(
-									rv.version,
-									rv.changelog
-								)
+								rv.version,
+								rv.changelog
 							)
-							if cfgFile['DiscordUpdateNotify'] then
-								ServerFunc.CreateLog({ description = "**JD_logs Update V"..rv.version.."**\nDownload the latest update of JD_logs here:\nhttps://github.com/prefech/JD_logs/releases/latest\n\n**Changelog:**\n"..rv.changelog, ping = true, channel = 'system'})
-							end
+						)
+						if cfgFile['DiscordUpdateNotify'] then
+							ServerFunc.CreateLog({ description = "**JD_logs Update V"..rv.version.."**\nDownload the latest update of JD_logs here:\nhttps://github.com/prefech/JD_logs/releases/latest\n\n**Changelog:**\n"..rv.changelog, ping = true, channel = 'system'})
 						end
-					else
-						errorLog('JD_logs unable to check version')
 					end
-				end,
-				'GET'
-			)
-			
-		else
-			errorLog('JD_logs unable to check version')
-		end
+				else
+					errorLog('JD_logs unable to check version')
+				end
+			end,
+			'GET'
+		)
+		
 	else
-		errorLog('Using the JD_logs beta version. (you might experience some issues using the beta version.)')
-		if version then
-			PerformHttpRequest(
-				'https://raw.githubusercontent.com/prefech/JD_logs/beta/json/version.json',
-				function(code, res, headers)
-					if code == 200 then
-						local rv = json.decode(res)
-						if rv.version ~= version then
-							print(
-								([[^1-------------------------------------------------------
-JD_logs
-UPDATE: %s AVAILABLE
-CHANGELOG: %s
--------------------------------------------------------^0]]):format(
-									rv.version,
-									rv.changelog
-								)
-							)
-							if cfgFile['DiscordUpdateNotify'] then
-								ServerFunc.CreateLog({ description = "**JD_logs Update V"..rv.version.."**\nDownload the latest update of JD_logs here:\nhttps://github.com/prefech/JD_logs/archive/refs/heads/beta.zip\n\n**Changelog:**\n"..rv.changelog, ping = true, channel = 'system'})
-							end
-						end
-					else
-						errorLog('JD_logs unable to check version')
-					end
-				end,
-				'GET'
-			)
-			
-		else
-			errorLog('JD_logs unable to check version')
-		end
+		errorLog('JD_logs unable to check version')
 	end
 end)

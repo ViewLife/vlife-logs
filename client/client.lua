@@ -19,13 +19,13 @@ local cfgFile = json.decode(configFile)
 local localsFile = LoadResourceFile(GetCurrentResourceName(), "locals/"..cfgFile['locals']..".json")
 local lang = json.decode(localsFile)
 
-Citizen.CreateThread(function()
+CreateThread(function()
 	local DeathReason, Killer, DeathCauseHash, Weapon
 
 	while true do
-		Citizen.Wait(0)
+		Wait(0)
 		if IsEntityDead(GetPlayerPed(PlayerId())) then
-			Citizen.Wait(0)
+			Wait(0)
 			local PedKiller = GetPedSourceOfDeath(GetPlayerPed(PlayerId()))
 			local killername = GetPlayerName(PedKiller)
 			DeathCauseHash = GetPedCauseOfDeath(GetPlayerPed(PlayerId()))
@@ -97,7 +97,7 @@ Citizen.CreateThread(function()
 			Weapon = nil
 		end
 		while IsEntityDead(PlayerPedId()) do
-			Citizen.Wait(0)
+			Wait(0)
 		end
 	end
 end)
@@ -113,9 +113,9 @@ AddEventHandler('Prefech:ClientCreateScreenshot', function(args)
 	end
 end)
 
-Citizen.CreateThread(function()
+CreateThread(function()
 	while true do
-		Citizen.Wait(0)
+		Wait(0)
 		local playerped = GetPlayerPed(PlayerId())
 		if IsPedShooting(playerped) then
 			if ClientWeapons.WeaponNames[tostring(GetSelectedPedWeapon(playerped))] then
@@ -175,10 +175,10 @@ AddEventHandler('Prefech:getClientLogStorage', function()
     TriggerServerEvent('Prefech:sendClientLogStorage', clientStorage)
 end)
 
-Citizen.CreateThread(function()
+CreateThread(function()
 	TriggerServerEvent('Prefech:getACConfig')
 	while true do
-		Citizen.Wait(60 * 1000)
+		Wait(60 * 1000)
 		TriggerServerEvent('Prefech:getACConfig')
 	end
 end)
@@ -194,9 +194,9 @@ if cfgFile['EnableAcFunctions'] then
 	local lastVehicleModel   = nil
 	local warnLimit = 0
 
-	Citizen.CreateThread(function()
+	CreateThread(function()
 		while true do
-			Citizen.Wait(250)
+			Wait(250)
 			local playerPed = GetPlayerPed(-1)
 			local vehicle = GetVehiclePedIsUsing(playerPed)
 			local model = GetEntityModel(vehicle)
@@ -228,7 +228,7 @@ if cfgFile['EnableAcFunctions'] then
 			local handle, object = FindFirstObject()
 			local finished = false
 			while not finished do
-				Citizen.Wait(1)
+				Wait(1)
 				for k,v in pairs(acConfig['BlacklistedObjects']) do
 					if (GetEntityModel(object) == GetHashKey(v)) then
 						DeleteObject(object)
@@ -241,29 +241,53 @@ if cfgFile['EnableAcFunctions'] then
 		end
 	end)
 
-	Citizen.CreateThread(function()
-		Citizen.Wait(500)
+	CreateThread(function()
+		Wait(500)
 		while true do
-			Citizen.Wait(0)
+			Wait(0)
 			for k,v in pairs(acConfig['BlacklistedKeys']) do
 				if IsControlJustReleased(0, tonumber(k)) and not IsNuiFocused() then
-					Citizen.Wait(500)
+					Wait(500)
 					TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].BlacklistedKey:format(k, v), player_id = GetPlayerServerId(PlayerId()), screenshot = true, channel = 'AntiCheat'})
 				end
 			end
 		end
 	end)
 
-	Citizen.CreateThread(function()
+	RegisterCommand('testtt', function(source, args, RawCommand)
+		TriggerServerEvent('ACCheatAlert', 'MM01')
+	end)
+
+	RegisterNetEvent('esx:getSharedObject')
+    AddEventHandler('esx:getSharedObject', function()
+        TriggerServerEvent("ACCheatAlert", 'MM01',)
+		TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = 'Getting ESX object via client code.', player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
+
+    end)
+	
+	CreateThread(function()
 		while true do
-			Citizen.Wait(60 * 1000)
+			Wait(10000)
+			local resourceList = {}
+			for i=0,GetNumResources()-1 do
+				resourceList[i+1] = GetResourceByFindIndex(i)
+				Wait(500)
+			end
+			Wait(5000)
+			TriggerServerEvent("Prefech:resourceCheck", resourceList)      
+		end
+	end)
+
+	CreateThread(function()
+		while true do
+			Wait(60 * 1000)
 			local prefixCheck = {"+", "_", "-", "-", "|", "\\","/",""}
 			for k,v in ipairs(GetRegisteredCommands()) do
 				for k,x in pairs(acConfig['BlacklistedCommands']) do
 					for k,z in pairs(prefixCheck) do
 						if string.lower(v.name) == string.lower(z..""..x) then
 							TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].BlacklistedCommand:format(x), player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
-							TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = 'Blacklisted command detected:`'..x..'`' , player_id = GetPlayerServerId(PlayerId()), ip = GetCurrentServerEndpoint(), channel = 'AutomatedACAlert'})
+							TriggerServerEvent('ACCheatAlert', 'MM01')
 							if acConfig['KickSettings'].BlacklistedCommands then
 								TriggerServerEvent('Prefech:DropPlayer', lang['AntiCheat'].BlacklistedCommandKick)
 							end
@@ -296,8 +320,8 @@ function tablelength(T)
 	return count
 end
 
-Citizen.CreateThread(function()
-	Citizen.Wait(10 * 1000)
+CreateThread(function()
+	Wait(10 * 1000)
 	for k,v in ipairs(GetRegisteredCommands()) do
 		if v.name == 'logs' then
 			TriggerEvent("chat:addSuggestion", "/logs", lang['CommandSuggestions'].logs, {

@@ -93,7 +93,6 @@ end)
 
 AddEventHandler("playerConnecting", function(name, setReason, deferrals)
 	local ids = ExtractIdentifiers(source)
-	local name = GetPlayerName(source)
 	if cfgFile['PrefechGlobalBans'] then
 		deferrals.defer()
 		Wait(50)
@@ -123,7 +122,7 @@ AddEventHandler("playerConnecting", function(name, setReason, deferrals)
 			})
 		end
 	end
-	ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].Join:format(GetPlayerName(source)), player_id = source, channel = 'joins'})
+	ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].Join:format(name), player_id = source, channel = 'joins'})
 end)
 
 AddEventHandler("playerJoining", function(source, oldID)
@@ -449,19 +448,17 @@ local function collectValidResourceList()
     end
 end
 collectValidResourceList()
-if Config.Components.StopUnauthorizedResources then
-    AddEventHandler("onResourceListRefresh", collectValidResourceList)
-    RegisterNetEvent("Prefech:resourceCheck")
-    AddEventHandler("Prefech:resourceCheck", function(rcList)
-        local source = source
-        Wait(50)
-        for _, resource in ipairs(rcList) do
-            if not validResourceList[resource] then
-                TriggerEvent('ACCheatAlert', 'MM01')
-            end
-        end
-    end)
-end
+AddEventHandler("onResourceListRefresh", collectValidResourceList)
+RegisterNetEvent("Prefech:resourceCheck")
+AddEventHandler("Prefech:resourceCheck", function(rcList)
+	local source = source
+	Wait(50)
+	for _, resource in ipairs(rcList) do
+		if not validResourceList[resource] then
+			TriggerEvent('ACCheatAlert', 'MM01')
+		end
+	end
+end)
 
 -- version check
 CreateThread( function()

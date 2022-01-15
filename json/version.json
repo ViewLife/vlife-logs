@@ -1,5 +1,5 @@
 {
     "date": "Jan 15, 2022",
-    "version": "2.1.7",
-    "changelog": "Added:\n• Spanish Translation: JohnHeatz#1337.\n• Polish  Translation: Szefit0#7907.\n• Italian Translation: ShadowzNight\n• Global bans now check every 10 minutes for all player that are already in game.\n\nRemoved:\n• bans.json file\n\nChanged:\n• Global bans now pull from a database wich will make it go faster when checking for bans.\n\nFixed:\n• Issue with ac config not loading.\n• Issue with name change logs formatting."
+    "version": "2.1.7b",
+    "changelog": "Hotfix\n\nFixed:\n• SCRIPT ERROR: Execution of native 00000000406b4b20."
 }

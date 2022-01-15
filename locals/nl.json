@@ -69,7 +69,7 @@
     },
 
     "CommandSuggestions": {
-        "logs": "Zie de laateste 5 logs van de speler.",
+        "logs": "Zie de laatste 5 logs van de speler.",
         "screenshot": "Vraag een screenshot van de speler aan.",
         "playerIdSuggestion": "Server id van de Speler."
     }

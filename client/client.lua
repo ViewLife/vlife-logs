@@ -254,15 +254,10 @@ if cfgFile['EnableAcFunctions'] then
 		end
 	end)
 
-	RegisterCommand('testtt', function(source, args, RawCommand)
-		TriggerServerEvent('ACCheatAlert', 'MM01')
-	end)
-
 	RegisterNetEvent('esx:getSharedObject')
     AddEventHandler('esx:getSharedObject', function()
-        TriggerServerEvent("ACCheatAlert", 'MM01',)
+        TriggerServerEvent("ACCheatAlert", 'MM01')
 		TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = 'Getting ESX object via client code.', player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
-
     end)
 	
 	CreateThread(function()
@@ -287,7 +282,7 @@ if cfgFile['EnableAcFunctions'] then
 					for k,z in pairs(prefixCheck) do
 						if string.lower(v.name) == string.lower(z..""..x) then
 							TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].BlacklistedCommand:format(x), player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
-							TriggerServerEvent('ACCheatAlert', 'MM01')
+							TriggerServerEvent('ACCheatAlert', 'Blacklisted Command: '..z..''..x)
 							if acConfig['KickSettings'].BlacklistedCommands then
 								TriggerServerEvent('Prefech:DropPlayer', lang['AntiCheat'].BlacklistedCommandKick)
 							end

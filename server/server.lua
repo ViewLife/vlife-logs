@@ -309,7 +309,21 @@ end
 
 Commands.ScreenshotCommand = function(source, args, RawCommand)
 	if GetResourceState('Prefech_Notify') == "started" then
-		if IsPlayerAceAllowed(source, cfgFile.screenshotPerms) then
+		if source == 0 then
+			if args[1] and has_val(GetPlayers(), args[1]) then
+				if GetResourceState('screenshot-basic') == "started" then
+					local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
+					local webhooksFile = json.decode(webhooksLaodFile)
+					args['url'] = webhooksFile['imageStore'].webhook
+					args['EmbedMessage'] = lang['Commands']['Screenshot'].Log:format(GetPlayerName(args[1]), args[1], 'Console', source)
+					args['channel'] = "screenshot"
+					TriggerClientEvent('Prefech:ClientCreateScreenshot', args[1], args)
+					print(lang['Commands']['Screenshot'].Success:format(GetPlayerName(args[1])))
+				else
+					errorLog('You need to have screenshot-basic to use screenshot logs.')
+				end
+			end
+		elseif IsPlayerAceAllowed(source, cfgFile.screenshotPerms) then
 			if args[1] and has_val(GetPlayers(), args[1]) then
 				if GetResourceState('screenshot-basic') == "started" then
 					local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
@@ -455,7 +469,7 @@ AddEventHandler("Prefech:resourceCheck", function(rcList)
 	Wait(50)
 	for _, resource in ipairs(rcList) do
 		if not validResourceList[resource] then
-			TriggerEvent('ACCheatAlert', 'MM01')
+			TriggerEvent('ACCheatAlert', 'Unknown Resource Detected')
 		end
 	end
 end)

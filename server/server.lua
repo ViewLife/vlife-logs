@@ -429,6 +429,9 @@ CreateThread(function()
 		for k,v in pairs(GetPlayers()) do
 			local ids = ExtractIdentifiers(v)
 			local name = GetPlayerName(v)
+			if name == nil then
+				return
+			end
 			if cfgFile['PrefechGlobalBans'] then
 				bypass = false
 				for k,v in pairs(cfgFile['GlobalBanBypass']) do

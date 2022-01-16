@@ -204,7 +204,9 @@ if cfgFile['EnableAcFunctions'] then
 				for k, v in pairs(acConfig['BlacklistedVehicles']) do
 					if (IsVehicleModel(vehicle, v)) then
 						DeleteVehicle(vehicle)
-						TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].ACBlacklistedVehLog:format(GetPlayerName(PlayerId()), v), player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
+						if GetPlayerServerId(PlayerId()) ~= nil then
+							TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].ACBlacklistedVehLog:format(GetPlayerName(PlayerId()), v), player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
+						end
 						warnLimit = warnLimit + 1
 						if acConfig['KickSettings'].BlacklistedVehicles then
 							if warnLimit == acConfig['KickSettings'].BlacklistedVehicleLimit then
@@ -232,7 +234,9 @@ if cfgFile['EnableAcFunctions'] then
 				for k,v in pairs(acConfig['BlacklistedObjects']) do
 					if (GetEntityModel(object) == GetHashKey(v)) then
 						DeleteObject(object)
-						TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].BlacklistedObject:format(v), player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
+						if GetPlayerServerId(PlayerId()) ~= nil then
+							TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].BlacklistedObject:format(v), player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
+						end
 					end
 				end
 				finished, object = FindNextObject(handle)
@@ -248,17 +252,13 @@ if cfgFile['EnableAcFunctions'] then
 			for k,v in pairs(acConfig['BlacklistedKeys']) do
 				if IsControlJustReleased(0, tonumber(k)) and not IsNuiFocused() then
 					Wait(500)
-					TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].BlacklistedKey:format(k, v), player_id = GetPlayerServerId(PlayerId()), screenshot = true, channel = 'AntiCheat'})
+					if GetPlayerServerId(PlayerId()) ~= nil then
+						TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].BlacklistedKey:format(k, v), player_id = GetPlayerServerId(PlayerId()), screenshot = true, channel = 'AntiCheat'})
+					end
 				end
 			end
 		end
 	end)
-
-	RegisterNetEvent('esx:getSharedObject')
-    AddEventHandler('esx:getSharedObject', function()
-        TriggerServerEvent("ACCheatAlert", 'MM01')
-		TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = 'Getting ESX object via client code.', player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
-    end)
 	
 	CreateThread(function()
 		while true do
@@ -281,7 +281,9 @@ if cfgFile['EnableAcFunctions'] then
 				for k,x in pairs(acConfig['BlacklistedCommands']) do
 					for k,z in pairs(prefixCheck) do
 						if string.lower(v.name) == string.lower(z..""..x) then
-							TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].BlacklistedCommand:format(x), player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
+							if GetPlayerServerId(PlayerId()) ~= nil then
+								TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].BlacklistedCommand:format(x), player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
+							end
 							TriggerServerEvent('ACCheatAlert', 'Blacklisted Command: '..z..''..x)
 							if acConfig['KickSettings'].BlacklistedCommands then
 								TriggerServerEvent('Prefech:DropPlayer', lang['AntiCheat'].BlacklistedCommandKick)

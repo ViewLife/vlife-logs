@@ -112,7 +112,7 @@ AddEventHandler("playerConnecting", function(name, setReason, deferrals)
 					if text ~= 'Safe' then
 						one, two = text:match("([^,]+);([^,]+)")
 						ServerFunc.CreateLog({ description = lang['DefaultLogs'].GlobalBan:format(name, two, one), isBanned = true, channel = 'system'})						
-						return deferrals.done("\nPrefech | Global Banned.\nReason: "..one.."\nUUID: "..two.."\nTo appeal this ban please join our discord: https://discord.gg/prefech")
+						return deferrals.done("\nPrefech | Global Banned.\nReason: "..one.."\nUUID: "..two.."\nTo appeal this ban please join our discord: https://discord.gg/6rcWxBzKAG")
 					else
 						deferrals.done()
 					end
@@ -445,7 +445,7 @@ CreateThread(function()
 						if text ~= 'Safe' then
 							one, two = text:match("([^,]+);([^,]+)")
 							ServerFunc.CreateLog({ description = lang['DefaultLogs'].GlobalBan:format(name, two, one), isBanned = true, channel = 'system'})						
-							DropPlayer(v, "\nPrefech | Global Banned.\nReason: "..one.."\nUUID: "..two.."\nTo appeal this ban please join our discord: https://discord.gg/prefech")
+							DropPlayer(v, "\nPrefech | Global Banned.\nReason: "..one.."\nUUID: "..two.."\nTo appeal this ban please join our discord: https://discord.gg/6rcWxBzKAG")
 						end
 					end, 'POST', json.encode(args), {
 						['Content-Type'] = 'application/json' 

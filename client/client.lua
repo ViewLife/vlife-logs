@@ -77,17 +77,17 @@ CreateThread(function()
 
 			if DeathReason == lang['DeathReasons'].Suicide or DeathReason == lang['DeathReasons'].Died then
 				TriggerServerEvent('Prefech:playerDied', {
-					type = 1, 
-					player_id = GetPlayerServerId(PlayerId()), 
-					death_reason = DeathReason, 
+					type = 1,
+					player_id = GetPlayerServerId(PlayerId()),
+					death_reason = DeathReason,
 					weapon = Weapon
 				})
 			else
 				TriggerServerEvent('Prefech:playerDied', {
-					type = 2, 
-					player_id = GetPlayerServerId(PlayerId()), 
-					player_2_id = GetPlayerServerId(Killer), 
-					death_reason = DeathReason, 
+					type = 2,
+					player_id = GetPlayerServerId(PlayerId()),
+					player_2_id = GetPlayerServerId(Killer),
+					death_reason = DeathReason,
 					weapon = Weapon
 				})
 			end
@@ -107,30 +107,55 @@ AddEventHandler('Prefech:ClientCreateScreenshot', function(args)
 	if args.url ~= "" and args.url ~= nil and args.url ~= 'DISCORD_WEBHOOK' then
 		exports['screenshot-basic']:requestScreenshotUpload(args.url, 'files[]', function(data)
 			local resp = json.decode(data)
-			args['responseUrl'] = resp.attachments[1].url
-			TriggerServerEvent('Prefech:ClientUploadScreenshot', args)
+			if resp.attachments then
+				args['responseUrl'] = resp.attachments[1].url
+				TriggerServerEvent('Prefech:ClientUploadScreenshot', args)
+			else
+				TriggerServerEvent('Prefech:JD_logs:Debug', 'Screenshot Failed.', "Make sure you have setup screenshot-basic correctly.")
+			end
 		end)
+	else
+		TriggerServerEvent('Prefech:JD_logs:Debug', 'Screenshot Failed.', "No webhook url found in imageStore.")
 	end
 end)
+
+currWeapon = 0
+fireWeapon = nil
+timeout = 0
+fireCount = 0
 
 CreateThread(function()
 	while true do
 		Wait(0)
 		local playerped = GetPlayerPed(PlayerId())
 		if IsPedShooting(playerped) then
-			if ClientWeapons.WeaponNames[tostring(GetSelectedPedWeapon(playerped))] then
+			fireWeapon = GetSelectedPedWeapon(playerped)
+			fireCount = fireCount + 1
+			timeout = 1000
+		elseif not IsPedShooting(playerped) and fireCount ~= 0 and timeout ~= 0 then
+			if timeout ~= 0 then
+				timeout = timeout - 1
+			end
+			if fireWeapon ~= GetSelectedPedWeapon(playerped) then
+				timeout = 0
+			end
+			if fireCount ~= 0 and timeout == 0 then
+				if not ClientWeapons.WeaponNames[tostring(fireWeapon)] then
+					TriggerServerEvent('Prefech:playerShotWeapon', lang['WeaponFired'].Undefined)
+					TriggerServerEvent('Prefech:JD_logs:Debug', 'Weapon not defined.', "Weapon not listed: "..tostring(fireWeapon))
+					return
+				end
+
 				isLoggedWeapon = true
 				for k,v in pairs(cfgFile['WeaponsNotLogged']) do
-				   	if GetSelectedPedWeapon(playerped) == GetHashKey(v) then
+					if GetSelectedPedWeapon(playerped) == GetHashKey(v) then
 						isLoggedWeapon = false
 					end
 				end
 				if isLoggedWeapon then
-					TriggerServerEvent('Prefech:playerShotWeapon', ClientWeapons.WeaponNames[tostring(GetSelectedPedWeapon(playerped))])
-				end				
-			else
-				TriggerServerEvent('Prefech:playerShotWeapon', lang['WeaponFired'].Undefined)
-				TriggerServerEvent('Prefech:JD_logs:Debug', 'Weapon not defined.', "Weapon not listed: "..tostring(GetSelectedPedWeapon(playerped)))
+					TriggerServerEvent('Prefech:playerShotWeapon', ClientWeapons.WeaponNames[tostring(fireWeapon)], fireCount)
+				end
+				fireCount = 0
 			end
 		end
 	end
@@ -154,7 +179,7 @@ exports('discord', function(message, id, id2, color, channel)
 end)
 
 exports('createLog', function(args)
-	TriggerServerEvent('Prefech:ClientDiscord', args)	
+	TriggerServerEvent('Prefech:ClientDiscord', args)
 	local resource = GetInvokingResource()
 	TriggerServerEvent('Prefech:JD_logs:Debug', 'Server New Export from '..resource)
 end)
@@ -259,7 +284,7 @@ if cfgFile['EnableAcFunctions'] then
 			end
 		end
 	end)
-	
+
 	CreateThread(function()
 		while true do
 			Wait(10000)
@@ -269,7 +294,7 @@ if cfgFile['EnableAcFunctions'] then
 				Wait(500)
 			end
 			Wait(5000)
-			TriggerServerEvent("Prefech:resourceCheck", resourceList)      
+			TriggerServerEvent("Prefech:resourceCheck", resourceList)
 		end
 	end)
 
@@ -325,7 +350,7 @@ CreateThread(function()
 				{ name="id", help=lang['CommandSuggestions'].playerIdSuggestion }
 			});
 		end
-		if v.name == 'screenshot' then		
+		if v.name == 'screenshot' then
 			TriggerEvent("chat:addSuggestion", "/screenshot", lang['CommandSuggestions'].screenshot, {
 				{ name="id", help=lang['CommandSuggestions'].playerIdSuggestion }
 			});

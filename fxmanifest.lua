@@ -13,7 +13,7 @@
     #####################################################################
 ]]
 
-version '2.1.7.4'
+version '2.1.7.5'
 author 'Prefech'
 description 'FXServer logs to Discord (https://prefech.com/)'
 repository 'https://github.com/prefech/JD_logs'
@@ -21,7 +21,8 @@ repository 'https://github.com/prefech/JD_logs'
 -- Server Scripts
 server_scripts {
     'server/server.lua',
-    'server/functions.lua'
+    'server/functions.lua',
+    'server/explotions.lua'
 }
 
 --Client Scripts
@@ -39,4 +40,4 @@ files {
 
 lua54 'yes'
 game 'gta5'
-fx_version 'cerulean' 
+fx_version 'cerulean'

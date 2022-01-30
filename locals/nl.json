@@ -5,7 +5,7 @@
         "NameChangeChat":"%s gebruikte de naam %s",
         "Left": "**%s** heeft de server verlaten. (Reden: %s)",
         "Join": "'**%s** is verbinding aan het maken met de server.'",
-        "Shooting": "**%s** schiet met een `%s`",
+        "Shooting": "**%s** schoot met een `%s` `%s keer`",
         "Explosion": "**%s** heeft een explosie veroorzaakt `%s`",
         "ResourceStop": "**%s** is gestopt.",
         "ResourceStart": "**%s** is gestart."
@@ -32,7 +32,7 @@
         "NoSteamLog": "Speler **%s** heeft geen steam id beschikbaar.",
         "NoSteam": "is verbonden zonder steam id."
     },
-    
+
     "DeathReasons": {
         "Suicide": "Pleegde Zelfmoord",
         "Died": "is overleden",
@@ -52,7 +52,7 @@
         "Flattened": "is over reden",
         "Killed": "is vermoord"
     },
-    
+
     "WeaponFired": {
         "Undefined": "Niet Beschikbaar"
     },

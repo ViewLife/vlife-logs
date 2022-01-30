@@ -14,30 +14,43 @@
 ]]
 
 ServerFunc = {}
-local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
-local webhooksFile = json.decode(webhooksLaodFile)
+local webhooksLoadFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
+local webhooksFile = json.decode(webhooksLoadFile)
+
+local configLoadFile = LoadResourceFile(GetCurrentResourceName(), "./config/config.json")
+local cfgFile = json.decode(configLoadFile)
+
+if cfgFile['useESX'] then
+    ESX = nil
+    CreateThread(function()
+        while ESX == nil do
+            TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
+            Wait(0)
+        end
+    end)
+end
 
 function ConvertColor(channel)
     local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
 	local webhooksFile = json.decode(webhooksLaodFile)
     if webhooksFile[channel] then
         src = webhooksFile[channel].color
-        if string.find(src,"#") then 
-            return tonumber(src:gsub("#",""),16) 
-        else 
+        if string.find(src,"#") then
+            return tonumber(src:gsub("#",""),16)
+        else
             return src
         end
-    else 
+    else
         return 000000
     end
 end
 
-function sendWebhooks(load)    
+function sendWebhooks(load)
         if webhooksFile[load.channel] then
         PerformHttpRequest(webhooksFile[load.channel].webhook, function(err, text, headers)
             ServerFunc.getStatus(err, load.channel)
         end, 'POST', json.encode(load.messageToDeliver), {
-            ['Content-Type'] = 'application/json' 
+            ['Content-Type'] = 'application/json'
         })
     else
         print('^1Error: No webhook channel set for: ^0'..load.channel)
@@ -57,12 +70,12 @@ function GetPlayerDetails(src, config, channel)
     if not webhooksFile[channel].Hide then
         webhooksFile[channel].Hide = {}
         for k,v in pairs(check) do
-            webhooksFile[channel].Hide[v] = false   
+            webhooksFile[channel].Hide[v] = false
         end
     else
         for k,v in pairs(check) do
-            if not webhooksFile[channel].Hide[v] then 
-                webhooksFile[channel].Hide[v] = false 
+            if not webhooksFile[channel].Hide[v] then
+                webhooksFile[channel].Hide[v] = false
             end
         end
     end
@@ -87,59 +100,59 @@ function GetPlayerDetails(src, config, channel)
     end
 
     if GetConvar("steam_webApiKey", "false") ~= 'false' then
-        if config['steamId'] and not webhooksFile[channel].Hide['SteamID'] then 
-            if ids.steam then 
-                _steamID ="\n**Steam ID:** " ..ids.steam.."" 
-            else 
-                _steamID = "\n**Steam ID:** N/A" 
-            end 
-        else 
-            _steamID = "" 
+        if config['steamId'] and not webhooksFile[channel].Hide['SteamID'] then
+            if ids.steam then
+                _steamID ="\n**Steam ID:** " ..ids.steam..""
+            else
+                _steamID = "\n**Steam ID:** N/A"
+            end
+        else
+            _steamID = ""
         end
-        
-        if config['steamUrl'] and not webhooksFile[channel].Hide['SteamURL'] then 
-            if ids.steam then 
-                _steamURL ="\nhttps://steamcommunity.com/profiles/" ..tonumber(ids.steam:gsub("steam:", ""),16).."" 
-            else 
-                _steamURL = "\n**Steam URL:** N/A" 
-            end 
-        else 
-            _steamURL = "" 
-        end       
+
+        if config['steamUrl'] and not webhooksFile[channel].Hide['SteamURL'] then
+            if ids.steam then
+                _steamURL ="\nhttps://steamcommunity.com/profiles/" ..tonumber(ids.steam:gsub("steam:", ""),16)..""
+            else
+                _steamURL = "\n**Steam URL:** N/A"
+            end
+        else
+            _steamURL = ""
+        end
     else
         _steamID = ""
         _steamURL = ""
         TriggerEvent('Prefech:JD_logs:errorLog', 'You need to set a steam api key in your server.cfg for the steam identifiers to work!.')
     end
- 
-	if config['license'] and not webhooksFile[channel].Hide['License'] then 
-        if ids.license then 
+
+	if config['license'] and not webhooksFile[channel].Hide['License'] then
+        if ids.license then
             _license ="\n**License:** " ..ids.license
-        else 
-            _license = "\n**License:** N/A" 
-        end 
-    else 
-        _license = "" 
+        else
+            _license = "\n**License:** N/A"
+        end
+    else
+        _license = ""
     end
 
-    if config['license2'] and not webhooksFile[channel].Hide['License2'] then 
-        if ids.license2 then 
+    if config['license2'] and not webhooksFile[channel].Hide['License2'] then
+        if ids.license2 then
             _license2 ="\n**License 2:** " ..ids.license2
-        else 
-            _license2 = "\n**License 2:** N/A" 
-        end 
-    else 
-        _license2 = "" 
+        else
+            _license2 = "\n**License 2:** N/A"
+        end
+    else
+        _license2 = ""
     end
 
-	if config['ip'] and not webhooksFile[channel].Hide['IP'] then 
-        if ids.ip then 
+	if config['ip'] and not webhooksFile[channel].Hide['IP'] then
+        if ids.ip then
             _ip ="\n**IP:** " ..ids.ip:gsub("ip:", "")
-        else 
-            _ip = "\n**IP:** N/A" 
-        end 
-    else 
-        _ip = "" 
+        else
+            _ip = "\n**IP:** N/A"
+        end
+    else
+        _ip = ""
     end
 
     if config.Session or config.PlayTime and not webhooksFile[channel].Hide['PlayTime'] then
@@ -167,14 +180,14 @@ function GetPlayerDetails(src, config, channel)
         _session = ""
     end
 
-	if config['playerId'] and not webhooksFile[channel].Hide['PlayerID'] then 
+	if config['playerId'] and not webhooksFile[channel].Hide['PlayerID'] then
         if channel ~= 'joins' then
-            _playerID ="\n**Player ID:** " ..src.."" 
+            _playerID ="\n**Player ID:** " ..src..""
         else
-            _playerID = "\n**Player ID:** N/A"     
+            _playerID = "\n**Player ID:** N/A"
         end
-    else 
-        _playerID = "" 
+    else
+        _playerID = ""
     end
 
     if config['playerPing'] and not webhooksFile[channel].Hide['playerPing'] then
@@ -185,7 +198,7 @@ function GetPlayerDetails(src, config, channel)
 
     if config['playerHealth'] or config['playerArmor'] then
         local playerPed = GetPlayerPed(src)
-        if config['playerHealth'] and config['playerArmor'] then            
+        if config['playerHealth'] and config['playerArmor'] then
             local maxHealth = math.floor(GetEntityMaxHealth(playerPed) / 2)
             local health = math.floor(GetEntityHealth(playerPed) / 2)
             local maxArmour = GetPlayerMaxArmour(src)
@@ -204,7 +217,42 @@ function GetPlayerDetails(src, config, channel)
         _hp = ""
     end
 
-    return _playerID..''.. _postal ..''.._hp..''.. _discordID..''.._steamID..''.._steamURL..''.._license..''.._license2..''.._session..''.._total..''.._ip
+    if config['useESX'] then
+        CreateThread(function()
+            while ESX == nil do
+                TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
+                Citizen.Wait(0)
+            end
+        end)
+
+        local xPlayer = ESX.GetPlayerFromId(src)
+        _esx = "\n\n**ESX:**"
+        if config['esxName'] then
+            _esx = _esx.."\n**Charachter Name:** "..xPlayer.name
+        end
+        if config['esxJob'] then
+            _esx = _esx.."\n**Job:** "..xPlayer.job.name.."\n**Job Grade:** "..xPlayer.job.grade
+        end
+        if config['esxMoney'] then
+            _cash = 0
+            _bank = 0
+            _blmon = 0
+            for k,v in pairs(xPlayer.accounts) do
+                if v.name == "money" then
+                    _cash = ESX.Math.GroupDigits(v.money)
+                elseif v.name == "bank" then
+                    _bank = ESX.Math.GroupDigits(v.money)
+                elseif v.name == "black_money" then
+                    _blmon = ESX.Math.GroupDigits(v.money)
+                end
+            end
+            _esx = _esx.."\n**Money:** $".._cash.."\n**Bank Balance:** $".._bank.."\n**Black Money:** $".._blmon
+        end
+    else
+        _esx = ""
+    end
+
+    return _playerID.._postal.._hp.._discordID.._steamID.._steamURL.._license.._license2.._session.._total.._ip.._esx
 end
 
 function SecondsToClock(seconds)
@@ -212,9 +260,9 @@ function SecondsToClock(seconds)
     seconds = seconds - days * 86400
     local hours = math.floor(seconds / 3600)
     seconds = seconds - hours * 3600
-    local minutes = math.floor(seconds / 60) 
+    local minutes = math.floor(seconds / 60)
     seconds = seconds - minutes * 60
-    return {days = days, hours = hours, minutes = minutes, seconds = seconds}    
+    return {days = days, hours = hours, minutes = minutes, seconds = seconds}
 end
 
 function ExtractIdentifiers(src)
@@ -279,9 +327,9 @@ function firstToUpper(str)
     return (str:gsub("^%l", string.upper))
 end
 
-function CreateLog(args)    
+function CreateLog(args)
 	local configLoadFile = LoadResourceFile(GetCurrentResourceName(), "./config/config.json")
-	local configFile = json.decode(configLoadFile)    
+	local configFile = json.decode(configLoadFile)
     --[[
         Start System channel filter
     ]]
@@ -301,7 +349,7 @@ function CreateLog(args)
                     ["text"] = "2020 - "..os.date("%Y").." © Prefech • "..os.date("%x %X %p"),
                     ["icon_url"] = "https://prefech.com/i/DiscordIcon.png",
                 },
-            }}, 
+            }},
             avatar_url = "https://prefech.com/i/DiscordIcon.png"
         }
         if args['isBanned'] then
@@ -322,9 +370,9 @@ function CreateLog(args)
 
     if webhooksFile[args.channel] then
         message = {
-            userName = configFile.userName, 
+            userName = configFile.userName,
             embeds = {{
-                ["color"] = ConvertColor(args.channel), 
+                ["color"] = ConvertColor(args.channel),
                 ["author"] = {
                     ["name"] = configFile.communityName,
                     ["icon_url"] = configFile.communityLogo
@@ -335,7 +383,7 @@ function CreateLog(args)
                     ["text"] = configFile.footerText.." • "..os.date("%x %X %p"),
                     ["icon_url"] = configFile.footerIcon,
                 },
-            }}, 
+            }},
             avatar_url = configFile.avatar
         }
 
@@ -396,7 +444,7 @@ function CreateLog(args)
         end
 
         content = {
-            userName = configFile.userName, 
+            userName = configFile.userName,
             content = args.EmbedMessage,
             avatar_url = configFile.avatar
         }
@@ -418,12 +466,12 @@ function CreateLog(args)
             sendWebhooks({messageToDeliver = content, ip = args.ip, channel = args.channel})
         end
     else
-        print("JD_logs: Webhooks channel not found. ("..args.channel..")")        
+        print("JD_logs: Webhooks channel not found. ("..args.channel..")")
     end
 end
 
 function getStatus()
-	if status == 404 or status == 401 and webhooksFile[channel].webhook ~= "DISCORD_WEBHOOK" and webhooksFile[channel].webhook ~= "" then 
+	if status == 404 or status == 401 and webhooksFile[channel].webhook ~= "DISCORD_WEBHOOK" and webhooksFile[channel].webhook ~= "" then
 		print('^3Warn: JD_logs webhook. Possible invalid webhook for "'..channel..'" webhook. Status code: '..status)
 	end
 end
@@ -448,6 +496,6 @@ ServerFunc.GetTitle = function(channel, icon)
 	GetTitle(channel, icon)
 end
 
-ServerFunc.ConvertColor = function(channel) 
+ServerFunc.ConvertColor = function(channel)
     ConvertColor(channel)
 end

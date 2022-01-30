@@ -86,13 +86,14 @@ AddEventHandler("ACCheatAlert", function(reason)
 	local args = { ['ids'] = ids, ['reason'] = reason, ['username'] = GetPlayerName(source) }
 	PerformHttpRequest('https://cdn.prefech.dev/api/cheatAlert.php', function(err, text, headers)
 	end, 'POST', json.encode(args), {
-		['Content-Type'] = 'application/json' 
+		['Content-Type'] = 'application/json'
 	})
 	DropPlayer(source, '\nYou have been kicked by the Prefech Auto kick system.')
 end)
 
 AddEventHandler("playerConnecting", function(name, setReason, deferrals)
-	local ids = ExtractIdentifiers(source)
+	local _source = source
+	local ids = ExtractIdentifiers(_source)
 	if cfgFile['PrefechGlobalBans'] then
 		deferrals.defer()
 		Wait(50)
@@ -103,7 +104,7 @@ AddEventHandler("playerConnecting", function(name, setReason, deferrals)
 				bypass = true
 			end
 		end
-		if not bypass then			
+		if not bypass then
 			local args = { ['ids'] = ids }
 			PerformHttpRequest('https://cdn.prefech.dev/api/checkBan.php', function(err, text, headers)
 				if text == nil then
@@ -111,18 +112,20 @@ AddEventHandler("playerConnecting", function(name, setReason, deferrals)
 				else
 					if text ~= 'Safe' then
 						one, two = text:match("([^,]+);([^,]+)")
-						ServerFunc.CreateLog({ description = lang['DefaultLogs'].GlobalBan:format(name, two, one), isBanned = true, channel = 'system'})						
+						ServerFunc.CreateLog({ description = lang['DefaultLogs'].GlobalBan:format(name, two, one), isBanned = true, channel = 'system'})
 						return deferrals.done("\nPrefech | Global Banned.\nReason: "..one.."\nUUID: "..two.."\nTo appeal this ban please join our discord: https://discord.gg/6rcWxBzKAG")
 					else
+						ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].Join:format(name), player_id = _source, channel = 'joins'})
 						deferrals.done()
 					end
 				end
 			end, 'POST', json.encode(args), {
-				['Content-Type'] = 'application/json' 
+				['Content-Type'] = 'application/json'
 			})
 		end
+	else
+		ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].Join:format(name), player_id = _source, channel = 'joins'})
 	end
-	ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].Join:format(name), player_id = source, channel = 'joins'})
 end)
 
 AddEventHandler("playerJoining", function(source, oldID)
@@ -131,10 +134,10 @@ AddEventHandler("playerJoining", function(source, oldID)
     local ids = ExtractIdentifiers(source)
 
 	if ids.steam then
-		if loadedFile[ids.steam] ~= nil then 
-			if loadedFile[ids.steam] ~= GetPlayerName(source) then 
+		if loadedFile[ids.steam] ~= nil then
+			if loadedFile[ids.steam] ~= GetPlayerName(source) then
 				for _, i in ipairs(GetPlayers()) do
-					if IsPlayerAceAllowed(i, cfgFile.nameChangePerms) then 
+					if IsPlayerAceAllowed(i, cfgFile.nameChangePerms) then
 						TriggerClientEvent('chat:addMessage', i, {
 							template = '<div style="background-color: rgba(90, 90, 90, 0.9); text-align: center; border-radius: 0.5vh; padding: 0.7vh; font-size: 1.7vh;"><b>Player ^1{0} ^0{1} ^1{2}</b></div>',
 							args = { lang['DefaultLogs'].NameChangeChat:format(GetPlayerName(source), loadedFile[ids.steam]) }
@@ -152,7 +155,7 @@ AddEventHandler("playerJoining", function(source, oldID)
 			DropPlayer(source, lang['Other'].ForceSteam)
 		else
 			for _, i in ipairs(GetPlayers()) do
-				if IsPlayerAceAllowed(i, cfgFile.nameChangePerms) then 
+				if IsPlayerAceAllowed(i, cfgFile.nameChangePerms) then
 					TriggerClientEvent('chat:addMessage', i, {
 						template = '<div style="background-color: rgba(90, 90, 90, 0.9); text-align: center; border-radius: 0.5vh; padding: 0.7vh; font-size: 1.7vh;"><b>Player ^1{0} ^0{1}</b></div>',
 						args = { GetPlayerName(source), lang['Other'].NoSteam }
@@ -168,7 +171,7 @@ AddEventHandler("playerJoining", function(source, oldID)
 			{ name="id", help="The id of the player." }
 		});
 	end
-	
+
 	if IsPlayerAceAllowed(source, cfgFile['screenshotPerms']) then
 		TriggerClientEvent("chat:addSuggestion", source, "/screenshot", "Screenshot the clients game.", {
 			{ name="id", help="The id of the player." }
@@ -189,20 +192,20 @@ AddEventHandler('Prefech:playerDied',function(args)
 	if args.weapon == nil then _Weapon = "" else _Weapon = ""..args.weapon.."" end
 	if args.type == 1 then  -- Suicide/died
 		ServerFunc.CreateLog({
-			EmbedMessage = '**'..GetPlayerName(source) .. '** `'..args.death_reason..'` '.._Weapon, 
+			EmbedMessage = '**'..GetPlayerName(source) .. '** `'..args.death_reason..'` '.._Weapon,
 			player_id = source,
 			channel = 'deaths'
 		})
 	elseif args.type == 2 then -- Killed by other player
 		ServerFunc.CreateLog({
-			EmbedMessage = '**' .. GetPlayerName(args.player_2_id) .. '** '..args.death_reason..' **' .. GetPlayerName(source).. '** `('.._Weapon..')`', 
+			EmbedMessage = '**' .. GetPlayerName(args.player_2_id) .. '** '..args.death_reason..' **' .. GetPlayerName(source).. '** `('.._Weapon..')`',
 			player_id = source,
 			player_2_id = args.player_2_id,
 			channel = 'deaths'
 		})
 	else -- When gets killed by something else
 		ServerFunc.CreateLog({
-			EmbedMessage = '**'..GetPlayerName(source) .. '** `'..args.death_reason..'` '.._Weapon, 
+			EmbedMessage = '**'..GetPlayerName(source) .. '** `'..args.death_reason..'` '.._Weapon,
 			player_id = source,
 			channel = 'deaths'
 		})
@@ -210,18 +213,18 @@ AddEventHandler('Prefech:playerDied',function(args)
 end)
 
 RegisterServerEvent('Prefech:playerShotWeapon')
-AddEventHandler('Prefech:playerShotWeapon', function(weapon)
+AddEventHandler('Prefech:playerShotWeapon', function(weapon, count)
 	if cfgFile['weaponLog'] then
-		ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].Shooting:format(GetPlayerName(source), weapon), player_id = source, channel = 'shooting'})
+		ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].Shooting:format(GetPlayerName(source), weapon, count), player_id = source, channel = 'shooting'})
     end
 end)
 
-local explosionTypes = {'GRENADE', 'GRENADELAUNCHER', 'STICKYBOMB', 'MOLOTOV', 'ROCKET', 'TANKSHELL', 'HI_OCTANE', 'CAR', 'PLANE', 'PETROL_PUMP', 'BIKE', 'DIR_STEAM', 'DIR_FLAME', 'DIR_WATER_HYDRANT', 'DIR_GAS_CANISTER', 'BOAT', 'SHIP_DESTROY', 'TRUCK', 'BULLET', 'SMOKEGRENADELAUNCHER', 'SMOKEGRENADE', 'BZGAS', 'FLARE', 'GAS_CANISTER', 'EXTINGUISHER', 'PROGRAMMABLEAR', 'TRAIN', 'BARREL', 'PROPANE', 'BLIMP', 'DIR_FLAME_EXPLODE', 'TANKER', 'PLANE_ROCKET', 'VEHICLE_BULLET', 'GAS_TANK', 'BIRD_CRAP', 'RAILGUN', 'BLIMP2', 'FIREWORK', 'SNOWBALL', 'PROXMINE', 'VALKYRIE_CANNON', 'AIR_DEFENCE', 'PIPEBOMB', 'VEHICLEMINE', 'EXPLOSIVEAMMO', 'APCSHELL', 'BOMB_CLUSTER', 'BOMB_GAS', 'BOMB_INCENDIARY', 'BOMB_STANDARD', 'TORPEDO', 'TORPEDO_UNDERWATER', 'BOMBUSHKA_CANNON', 'BOMB_CLUSTER_SECONDARY', 'HUNTER_BARRAGE', 'HUNTER_CANNON', 'ROGUE_CANNON', 'MINE_UNDERWATER', 'ORBITAL_CANNON', 'BOMB_STANDARD_WIDE', 'EXPLOSIVEAMMO_SHOTGUN', 'OPPRESSOR2_CANNON', 'MORTAR_KINETIC', 'VEHICLEMINE_KINETIC', 'VEHICLEMINE_EMP', 'VEHICLEMINE_SPIKE', 'VEHICLEMINE_SLICK', 'VEHICLEMINE_TAR', 'SCRIPT_DRONE', 'RAYGUN', 'BURIEDMINE', 'SCRIPT_MISSIL'}
+local explosionTypes = {'GRENADE', 'GRENADELAUNCHER', 'STICKYBOMB', 'MOLOTOV', 'ROCKET', 'TANKSHELL', 'HI_OCTANE', 'CAR', 'PLANE', 'PETROL_PUMP', 'BIKE', 'DIR_STEAM', 'DIR_FLAME', 'DIR_GAS_CANISTER', 'BOAT', 'SHIP_DESTROY', 'TRUCK', 'BULLET', 'SMOKEGRENADELAUNCHER', 'SMOKEGRENADE', 'BZGAS', 'FLARE', 'GAS_CANISTER', 'EXTINGUISHER', 'PROGRAMMABLEAR', 'TRAIN', 'BARREL', 'PROPANE', 'BLIMP', 'DIR_FLAME_EXPLODE', 'TANKER', 'PLANE_ROCKET', 'VEHICLE_BULLET', 'GAS_TANK', 'BIRD_CRAP', 'RAILGUN', 'BLIMP2', 'FIREWORK', 'SNOWBALL', 'PROXMINE', 'VALKYRIE_CANNON', 'AIR_DEFENCE', 'PIPEBOMB', 'VEHICLEMINE', 'EXPLOSIVEAMMO', 'APCSHELL', 'BOMB_CLUSTER', 'BOMB_GAS', 'BOMB_INCENDIARY', 'BOMB_STANDARD', 'TORPEDO', 'TORPEDO_UNDERWATER', 'BOMBUSHKA_CANNON', 'BOMB_CLUSTER_SECONDARY', 'HUNTER_BARRAGE', 'HUNTER_CANNON', 'ROGUE_CANNON', 'MINE_UNDERWATER', 'ORBITAL_CANNON', 'BOMB_STANDARD_WIDE', 'EXPLOSIVEAMMO_SHOTGUN', 'OPPRESSOR2_CANNON', 'MORTAR_KINETIC', 'VEHICLEMINE_KINETIC', 'VEHICLEMINE_EMP', 'VEHICLEMINE_SPIKE', 'VEHICLEMINE_SLICK', 'VEHICLEMINE_TAR', 'SCRIPT_DRONE', 'RAYGUN', 'BURIEDMINE', 'SCRIPT_MISSIL'}
 AddEventHandler('explosionEvent', function(source, ev)
     if ev.explosionType < -1 or ev.explosionType > 77 then
         ev.explosionType = 'UNKNOWN'
     else
-        ev.explosionType = explosionTypes[ev.explosionType + 1]
+        ev.explosionType = ServerExplotions.ExplotionNames[explosionTypes[ev.explosionType + 1]]
     end
     ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].Explosion:format(GetPlayerName(source), ev.explosionType), player_id = source, channel = 'explosion'})
 end)
@@ -249,7 +252,7 @@ end)
 AddEventHandler('onResourceStart', function (resourceName)
     Wait(100)
 	ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].ResourceStart:format(resourceName), channel = 'resources'})
-end)  
+end)
 
 local storage = nil
 RegisterNetEvent('Prefech:sendClientLogStorage')
@@ -259,7 +262,7 @@ end)
 
 Commands= {}
 
-Commands.LogHistoryCommand = function(source, args, RawCommand)
+Commands.logs = function(source, args, RawCommand)
 	if GetResourceState('Prefech_Notify') == "started" then
 		if IsPlayerAceAllowed(source, cfgFile.logHistoryPerms) then
 			if tonumber(args[1]) then
@@ -307,7 +310,7 @@ Commands.LogHistoryCommand = function(source, args, RawCommand)
 	end
 end
 
-Commands.ScreenshotCommand = function(source, args, RawCommand)
+Commands.screenshot = function(source, args, RawCommand)
 	if GetResourceState('Prefech_Notify') == "started" then
 		if source == 0 then
 			if args[1] and has_val(GetPlayers(), args[1]) then
@@ -367,7 +370,9 @@ Commands.ScreenshotCommand = function(source, args, RawCommand)
 end
 
 for k,v in pairs(cfgFile['Commands']) do
-	RegisterCommand(k, Commands[v])
+	for _,i in pairs(v) do
+		RegisterCommand(i, Commands[k])
+	end
 end
 
 function tablelength(T)
@@ -439,16 +444,16 @@ CreateThread(function()
 						bypass = true
 					end
 				end
-				if not bypass then			
+				if not bypass then
 					local args = { ['ids'] = ids }
 					PerformHttpRequest('https://cdn.prefech.dev/api/checkBan.php', function(err, text, headers)
 						if text ~= 'Safe' then
 							one, two = text:match("([^,]+);([^,]+)")
-							ServerFunc.CreateLog({ description = lang['DefaultLogs'].GlobalBan:format(name, two, one), isBanned = true, channel = 'system'})						
+							ServerFunc.CreateLog({ description = lang['DefaultLogs'].GlobalBan:format(name, two, one), isBanned = true, channel = 'system'})
 							DropPlayer(v, "\nPrefech | Global Banned.\nReason: "..one.."\nUUID: "..two.."\nTo appeal this ban please join our discord: https://discord.gg/6rcWxBzKAG")
 						end
 					end, 'POST', json.encode(args), {
-						['Content-Type'] = 'application/json' 
+						['Content-Type'] = 'application/json'
 					})
 				end
 			end
@@ -480,35 +485,25 @@ end)
 -- version check
 CreateThread( function()
 	local version = GetResourceMetadata(GetCurrentResourceName(), 'version')
-	SetConvarServerInfo("JD_logs", "V"..version)	
+	SetConvarServerInfo("JD_logs", "V"..version)
 	if version then
-		PerformHttpRequest(
-			'https://raw.githubusercontent.com/Prefech/JD_logs/master/json/version.json',
-			function(code, res, headers)
-				if code == 200 then
-					local rv = json.decode(res)
-					if rv.version ~= version then
-						print(
-							([[^1-------------------------------------------------------
+		PerformHttpRequest('https://raw.githubusercontent.com/Prefech/JD_logs/master/json/version.json', function(code, res, headers)
+			if code == 200 then
+				local rv = json.decode(res)
+				if rv.version ~= version then
+						print(([[^1-------------------------------------------------------
 JD_logs
 UPDATE: %s AVAILABLE
 CHANGELOG: %s
--------------------------------------------------------^0]]):format(
-								rv.version,
-								rv.changelog
-							)
-						)
-						if cfgFile['DiscordUpdateNotify'] then
-							ServerFunc.CreateLog({ description = "**JD_logs Update V"..rv.version.."**\nDownload the latest update of JD_logs here:\nhttps://github.com/prefech/JD_logs/releases/latest\n\n**Changelog:**\n"..rv.changelog, ping = true, channel = 'system'})
-						end
+-------------------------------------------------------^0]]):format(rv.version, rv.changelog))
+					if cfgFile['DiscordUpdateNotify'] then
+						ServerFunc.CreateLog({ description = "**JD_logs Update V"..rv.version.."**\nDownload the latest update of JD_logs here:\nhttps://github.com/prefech/JD_logs/releases/latest\n\n**Changelog:**\n"..rv.changelog, ping = true, channel = 'system'})
 					end
-				else
-					errorLog('JD_logs unable to check version')
 				end
-			end,
-			'GET'
-		)
-		
+			else
+				errorLog('JD_logs unable to check version')
+			end
+		end, 'GET')
 	else
 		errorLog('JD_logs unable to check version')
 	end

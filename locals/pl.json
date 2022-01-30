@@ -5,7 +5,7 @@
         "NameChangeChat":"%s używał nazwy %s",
         "Left": "**%s** wyszedł z serwera. (Powód: %s)",
         "Join": "'**%s** łączy się z serwerem.'",
-        "Shooting": "**%s** shooting a `%s`",
+        "Shooting": "**%s** shooting a `%s` `x%s`",
         "Explosion": "**%s** created a explosion `%s`",
         "ResourceStop": "**%s** został zatrzymany.",
         "ResourceStart": "**%s** został aktywowany."
@@ -32,7 +32,7 @@
         "NoSteamLog": "Gracz **%s** nie ma włączonego steama i nie można wczytać jego nazwy.",
         "NoSteam": "łączy się bez steam id."
     },
-    
+
     "DeathReasons": {
         "Suicide": "popełnił samobójstwo",
         "Died": "umarł",
@@ -52,7 +52,7 @@
         "Flattened": "spłaszczony",
         "Killed": "zabity"
     },
-    
+
     "WeaponFired": {
         "Undefined": "Nieokreślony"
     },

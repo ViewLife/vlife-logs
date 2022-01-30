@@ -5,7 +5,7 @@
         "NameChangeChat":"%s è stao chiamato %s",
         "Left": "**%s** è uscito dal server.\n(Motivo: %s)",
         "Join": "'**%s** si sta connettendo al server.'",
-        "Shooting": "**%s** sparando a `%s`",
+        "Shooting": "**%s** sparando a `%s` `x%s`",
         "Explosion": "**%s** ha creato un'esplosione `%s`",
         "ResourceStop": "**%s** è stata stoppata.",
         "ResourceStart": "**%s** è stata startata."
@@ -73,4 +73,4 @@
         "screenshot": "Richiedi screenshot del gioco di un giocatore.",
         "playerIdSuggestion": "Id del giocatore."
     }
-} 
+}

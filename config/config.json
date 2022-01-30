@@ -2,7 +2,7 @@
     "locals": "en",
 
     "EnableAcFunctions": true,
-    
+
     "allLogs": true,
     "postals": true,
     "weaponLog": true,
@@ -44,11 +44,17 @@
 
     "WeaponsNotLogged": [
         "WEAPON_SNOWBALL",
-        "WEAPON_FIREEXTINGUISHER"
+        "WEAPON_FIREEXTINGUISHER",
+        "WEAPON_PETROLCAN"
     ],
 
     "Commands": {
-        "logs": "LogHistoryCommand",
-        "screenshot": "ScreenshotCommand"
-    }
+        "logs": ["logs", "lh"],
+        "screenshot": ["screenshot", "ss"]
+    },
+
+    "useESX": false,
+    "esxName": false,
+    "esxJob": false,
+    "esxMoney": false
 }

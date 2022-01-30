@@ -5,7 +5,7 @@
         "NameChangeChat":"%s était autrefois nommé %s",
         "Left": "**%s** a quitté le serveur. (Raison : %s)",
         "Join": "'**%s** c'est connecté au serveur.'",
-        "Shooting": "**%s** tirer sur un `%s`",
+        "Shooting": "**%s** tirer sur un `%s` `x%s`",
         "Explosion": "**%s** a créé une explosion `%s`",
         "ResourceStop": "**%s** a été stop.",
         "ResourceStart": "**%s** a été start."
@@ -32,7 +32,7 @@
         "NoSteamLog": "Joueur : **%s** n'a pas steam actif et nous ne pouvons pas enregistrer son nom.",
         "NoSteam": "se connecte sans identifiant steam."
     },
-    
+
     "DeathReasons": {
         "Suicide": "s'est suicidé",
         "Died": "est mort",
@@ -52,7 +52,7 @@
         "Flattened": "i dont know what does it mean",
         "Killed": "a tué"
     },
-    
+
     "WeaponFired": {
         "Undefined": "Indéfini"
     },

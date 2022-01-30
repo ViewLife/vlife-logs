@@ -5,7 +5,7 @@
         "NameChangeChat":"%s se llamaba %s",
         "Left": "**%s** se ha desconectado del servidor. (Motivo: %s)",
         "Join": "'**%s** se está conectando al servidor.'",
-        "Shooting": "**%s** está disparando una `%s`",
+        "Shooting": "**%s** está disparando una `%s` `x%s`",
         "Explosion": "**%s** hizo una explosión `%s`",
         "ResourceStop": "**%s** se ha detenido.",
         "ResourceStart": "**%s** se ha iniciado."
@@ -32,7 +32,7 @@
         "NoSteamLog": "El jugador **%s** no tiene Steam activo por lo que no se puede loguear su nombre.",
         "NoSteam": "se está conectando sin un ID de Steam."
     },
-    
+
     "DeathReasons": {
         "Suicide": "cometió suicidio",
         "Died": "murió",
@@ -52,7 +52,7 @@
         "Flattened": "atropellado",
         "Killed": "asesinado"
     },
-    
+
     "WeaponFired": {
         "Undefined": "sin definir"
     },

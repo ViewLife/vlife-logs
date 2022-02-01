@@ -1,5 +1,5 @@
 {
-    "date": "Jan 30, 2022",
-    "version": "2.1.7.5",
-    "changelog": "Added:\n• `WEAPON_PETROLCAN` to default not logged in config.\n• Fire count to shooting logs to stop the spam a bit more.\n• Check for screenshot webhook setup.\n• Option to set names for explotion types in `server/explotions.lua`\n• Option to include ESX jobs, charachter names and player money in logs (This is BETA and not tested on all esx versions.)\nRemoved:\n• `DIR_WATER_HYDRANT` from explotion logs.\n\nFixed:\n• Issue with details not showing on connect.\n\nChanged:\n• Reworked commands in the config to make it easier to understand."
+    "date": "Feb 1, 2022",
+    "version": "2.1.7.6",
+    "changelog": "Fixed:\n• xPlayer error on join with ESX info enabled.\n\nRemoved:\n• Esx player info on join logs (player doesn't exist yet so can't pull info)."
 }

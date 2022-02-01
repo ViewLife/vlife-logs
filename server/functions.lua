@@ -217,14 +217,7 @@ function GetPlayerDetails(src, config, channel)
         _hp = ""
     end
 
-    if config['useESX'] then
-        CreateThread(function()
-            while ESX == nil do
-                TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
-                Citizen.Wait(0)
-            end
-        end)
-
+    if config['useESX'] and channel ~= 'joins' then
         local xPlayer = ESX.GetPlayerFromId(src)
         _esx = "\n\n**ESX:**"
         if config['esxName'] then

@@ -1,5 +1,5 @@
 {
-    "all": { 
+    "all": {
         "webhook": "DISCORD_WEBHOOK",
         "color": "#A1A1A1",
         "embed": true
@@ -10,9 +10,9 @@
     "imageStore": {
         "webhook": "DISCORD_WEBHOOK"
     },
-	"chat": { 
-        "webhook": "DISCORD_WEBHOOK", 
-        "icon": "💬", 
+	"chat": {
+        "webhook": "DISCORD_WEBHOOK",
+        "icon": "💬",
         "color": "#A1A1A1",
         "logHistory": true,
         "embed": true,
@@ -26,12 +26,15 @@
             "License2": false,
             "IP": false,
             "PlayTime": false,
-            "playerPing": true
+            "playerPing": false,
+            "esxName": false,
+            "esxJob": false,
+            "esxMoney": false
         }
     },
-	"joins": { 
-        "webhook": "DISCORD_WEBHOOK", 
-        "icon": "📥", 
+	"joins": {
+        "webhook": "DISCORD_WEBHOOK",
+        "icon": "📥",
         "color": "#3AF241",
         "embed": true,
         "Hide": {
@@ -44,12 +47,15 @@
             "License2": false,
             "IP": false,
             "PlayTime": false,
-            "playerPing": true
+            "playerPing": false,
+            "esxName": false,
+            "esxJob": false,
+            "esxMoney": false
         }
     },
-	"leaving": { 
-        "webhook": "DISCORD_WEBHOOK", 
-        "icon": "📤", 
+	"leaving": {
+        "webhook": "DISCORD_WEBHOOK",
+        "icon": "📤",
         "color": "#F23A3A",
         "embed": true,
         "Hide": {
@@ -62,12 +68,15 @@
             "License2": false,
             "IP": false,
             "PlayTime": false,
-            "playerPing": true
+            "playerPing": false,
+            "esxName": false,
+            "esxJob": false,
+            "esxMoney": false
         }
     },
-	"deaths": { 
-        "webhook": "DISCORD_WEBHOOK", 
-        "icon": "💀", 
+	"deaths": {
+        "webhook": "DISCORD_WEBHOOK",
+        "icon": "💀",
         "color": "#000000",
         "logHistory": true,
         "embed": true,
@@ -81,12 +90,15 @@
             "License2": false,
             "IP": false,
             "PlayTime": false,
-            "playerPing": true
+            "playerPing": false,
+            "esxName": false,
+            "esxJob": false,
+            "esxMoney": false
         }
     },
-	"shooting": { 
-        "webhook": "DISCORD_WEBHOOK", 
-        "icon": "🔫", 
+	"shooting": {
+        "webhook": "DISCORD_WEBHOOK",
+        "icon": "🔫",
         "color": "#2E66F2",
         "logHistory": false,
         "embed": true,
@@ -100,12 +112,15 @@
             "License2": false,
             "IP": false,
             "PlayTime": false,
-            "playerPing": true
+            "playerPing": false,
+            "esxName": false,
+            "esxJob": false,
+            "esxMoney": false
         }
     },
-	"resources": { 
-        "webhook": "DISCORD_WEBHOOK", 
-        "icon": "🔧", 
+	"resources": {
+        "webhook": "DISCORD_WEBHOOK",
+        "icon": "🔧",
         "color": "#EBEE3F",
         "embed": true,
         "Hide": {
@@ -121,9 +136,9 @@
             "playerPing": false
         }
     },
-    "nameChange": { 
-        "webhook": "DISCORD_WEBHOOK", 
-        "icon": "⚠", 
+    "nameChange": {
+        "webhook": "DISCORD_WEBHOOK",
+        "icon": "⚠",
         "color": "#03FC98",
         "embed": true,
         "Hide": {
@@ -136,12 +151,15 @@
             "License2": false,
             "IP": false,
             "PlayTime": false,
-            "playerPing": true
+            "playerPing": false,
+            "esxName": false,
+            "esxJob": false,
+            "esxMoney": false
         }
     },
     "explosion": {
-        "webhook": "DISCORD_WEBHOOK", 
-        "icon": "🧨", 
+        "webhook": "DISCORD_WEBHOOK",
+        "icon": "🧨",
         "color": "#03FC98",
         "embed": true,
         "Hide": {
@@ -154,12 +172,15 @@
             "License2": false,
             "IP": false,
             "PlayTime": false,
-            "playerPing": true
+            "playerPing": false,
+            "esxName": false,
+            "esxJob": false,
+            "esxMoney": false
         }
     },
-    "screenshot": { 
-        "webhook": "DISCORD_WEBHOOK", 
-        "icon": "📸", 
+    "screenshot": {
+        "webhook": "DISCORD_WEBHOOK",
+        "icon": "📸",
         "color": "#A1A1A1",
         "logHistory": false,
         "embed": true,
@@ -178,7 +199,7 @@
     },
     "AntiCheat": {
         "webhook": "DISCORD_WEBHOOK",
-        "icon": "⚠", 
+        "icon": "⚠",
         "color": "#A1A1A1",
         "logHistory": false,
         "embed": true,

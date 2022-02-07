@@ -220,13 +220,13 @@ function GetPlayerDetails(src, config, channel)
     if config['useESX'] and channel ~= 'joins' then
         local xPlayer = ESX.GetPlayerFromId(src)
         _esx = "\n\n**ESX:**"
-        if config['esxName'] then
+        if config['esxName'] and not webhooksFile[channel].Hide['esxName'] then
             _esx = _esx.."\n**Charachter Name:** "..xPlayer.name
         end
-        if config['esxJob'] then
+        if config['esxJob'] and not webhooksFile[channel].Hide['esxJob'] then
             _esx = _esx.."\n**Job:** "..xPlayer.job.name.."\n**Job Grade:** "..xPlayer.job.grade
         end
-        if config['esxMoney'] then
+        if config['esxMoney'] and not webhooksFile[channel].Hide['esxMoney'] then
             _cash = 0
             _bank = 0
             _blmon = 0

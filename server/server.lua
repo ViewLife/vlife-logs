@@ -451,6 +451,7 @@ CreateThread(function()
 							one, two = text:match("([^,]+);([^,]+)")
 							ServerFunc.CreateLog({ description = lang['DefaultLogs'].GlobalBan:format(name, two, one), isBanned = true, channel = 'system'})
 							DropPlayer(v, "\nPrefech | Global Banned.\nReason: "..one.."\nUUID: "..two.."\nTo appeal this ban please join our discord: https://discord.gg/6rcWxBzKAG")
+							--[[ The link to this discord is where banned player can appeal their global ban. Feel free to join it.]]
 						end
 					end, 'POST', json.encode(args), {
 						['Content-Type'] = 'application/json'
@@ -477,7 +478,7 @@ AddEventHandler("Prefech:resourceCheck", function(rcList)
 	Wait(50)
 	for _, resource in ipairs(rcList) do
 		if not validResourceList[resource] then
-			TriggerEvent('ACCheatAlert', 'Unknown Resource Detected')
+			TriggerEvent('ACCheatAlert', 'URD')
 		end
 	end
 end)

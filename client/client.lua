@@ -21,22 +21,19 @@ local lang = json.decode(localsFile)
 
 CreateThread(function()
 	local DeathReason, Killer, DeathCauseHash, Weapon
-
 	while true do
 		Wait(0)
-		if IsEntityDead(GetPlayerPed(PlayerId())) then
+		if IsEntityDead(PlayerPedId()) then
 			Wait(0)
-			local PedKiller = GetPedSourceOfDeath(GetPlayerPed(PlayerId()))
+			local PedKiller = GetPedSourceOfDeath(PlayerPedId())
 			local killername = GetPlayerName(PedKiller)
-			DeathCauseHash = GetPedCauseOfDeath(GetPlayerPed(PlayerId()))
+			DeathCauseHash = GetPedCauseOfDeath(PlayerPedId())
 			Weapon = ClientWeapons.WeaponNames[tostring(DeathCauseHash)]
-
 			if IsEntityAPed(PedKiller) and IsPedAPlayer(PedKiller) then
 				Killer = NetworkGetPlayerIndexFromPed(PedKiller)
 			elseif IsEntityAVehicle(PedKiller) and IsEntityAPed(GetPedInVehicleSeat(PedKiller, -1)) and IsPedAPlayer(GetPedInVehicleSeat(PedKiller, -1)) then
 				Killer = NetworkGetPlayerIndexFromPed(GetPedInVehicleSeat(PedKiller, -1))
 			end
-
 			if (Killer == PlayerId()) then
 				DeathReason = lang['DeathReasons'].Suicide
 			elseif (Killer == nil) then
@@ -76,20 +73,9 @@ CreateThread(function()
 			end
 
 			if DeathReason == lang['DeathReasons'].Suicide or DeathReason == lang['DeathReasons'].Died then
-				TriggerServerEvent('Prefech:playerDied', {
-					type = 1,
-					player_id = GetPlayerServerId(PlayerId()),
-					death_reason = DeathReason,
-					weapon = Weapon
-				})
+				TriggerServerEvent('Prefech:playerDied', { type = 1, player_id = GetPlayerServerId(PlayerId()), death_reason = DeathReason, weapon = Weapon })
 			else
-				TriggerServerEvent('Prefech:playerDied', {
-					type = 2,
-					player_id = GetPlayerServerId(PlayerId()),
-					player_2_id = GetPlayerServerId(Killer),
-					death_reason = DeathReason,
-					weapon = Weapon
-				})
+				TriggerServerEvent('Prefech:playerDied', { type = 2, player_id = GetPlayerServerId(PlayerId()), player_2_id = GetPlayerServerId(Killer), death_reason = DeathReason, weapon = Weapon })
 			end
 			Killer = nil
 			DeathReason = nil
@@ -119,12 +105,11 @@ AddEventHandler('Prefech:ClientCreateScreenshot', function(args)
 	end
 end)
 
-currWeapon = 0
-fireWeapon = nil
-timeout = 0
-fireCount = 0
-
 CreateThread(function()
+	local currWeapon = 0
+	local fireWeapon = nil
+	local timeout = 0
+	local fireCount = 0
 	while true do
 		Wait(0)
 		local playerped = GetPlayerPed(PlayerId())
@@ -309,7 +294,7 @@ if cfgFile['EnableAcFunctions'] then
 							if GetPlayerServerId(PlayerId()) ~= nil then
 								TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].BlacklistedCommand:format(x), player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
 							end
-							TriggerServerEvent('ACCheatAlert', 'Blacklisted Command: '..z..''..x)
+							TriggerServerEvent('ACCheatAlert', 'BC01: '..z..''..x)
 							if acConfig['KickSettings'].BlacklistedCommands then
 								TriggerServerEvent('Prefech:DropPlayer', lang['AntiCheat'].BlacklistedCommandKick)
 							end

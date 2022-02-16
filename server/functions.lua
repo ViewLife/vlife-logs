@@ -14,11 +14,21 @@
 ]]
 
 ServerFunc = {}
+
 local webhooksLoadFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
 local webhooksFile = json.decode(webhooksLoadFile)
-
 local configLoadFile = LoadResourceFile(GetCurrentResourceName(), "./config/config.json")
 local cfgFile = json.decode(configLoadFile)
+
+if webhooksFile == nil then
+    print('^5[JD_logs] ^1Error: Could not load webhooks file. Make sure you didn\'t make a typo.^0')
+    return StopResource(GetCurrentResourceName())
+end
+
+if cfgFile == nil then
+    print('^5[JD_logs] ^1Error: Could not load config file. Make sure you didn\'t make a typo.^0')
+    return StopResource(GetCurrentResourceName())
+end
 
 if cfgFile['useESX'] then
     ESX = nil
@@ -385,13 +395,23 @@ function CreateLog(args)
                 TriggerClientEvent('Prefech:ClientLogStorage', args.player_id, { Channel = args.channel, Message = args.EmbedMessage, TimeStamp = os.date("%x %X %p") })
             end
             Player_Details = GetPlayerDetails(args.player_id, configFile, args.channel)
-            message['embeds'][1].fields = {
-                {
-                    ["name"] = "Player Details: "..GetPlayerName(args.player_id),
-                    ["value"] = Player_Details,
-                    ["inline"] = configFile.inlineField
+            if GetPlayerName(args.player_id) ~= nil then
+                message['embeds'][1].fields = {
+                    {
+                        ["name"] = "Player Details: "..GetPlayerName(args.player_id),
+                        ["value"] = Player_Details,
+                        ["inline"] = configFile.inlineField
+                    }
                 }
-            }
+            else
+                message['embeds'][1].fields = {
+                    {
+                        ["name"] = "Player Details: N/A",
+                        ["value"] = "N/A - Could not get the player's info.",
+                        ["inline"] = configFile.inlineField
+                    }
+                }
+            end
             if configFile['timestamp'] then
                 message['embeds'][1].fields[2]  = {
                     ["name"] = "Timestamp:",

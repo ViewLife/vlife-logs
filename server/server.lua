@@ -20,6 +20,16 @@ local cfgFile = json.decode(configFile)
 local localsFile = LoadResourceFile(GetCurrentResourceName(), "locals/"..cfgFile['locals']..".json")
 local lang = json.decode(localsFile)
 
+if lang == nil then
+    print('^5[JD_logs] ^1Error: Could not load language file. Make sure you didn\'t make a typo.^0')
+    return StopResource(GetCurrentResourceName())
+end
+
+if cfgFile == nil then
+    print('^5[JD_logs] ^1Error: Could not load config file. Make sure you didn\'t make a typo.^0')
+    return StopResource(GetCurrentResourceName())
+end
+
 RegisterNetEvent('Prefech:JD_logs:Debug')
 AddEventHandler('Prefech:JD_logs:Debug', log)
 
@@ -81,14 +91,24 @@ exports('createLog', function(args)
 end)
 
 RegisterNetEvent("ACCheatAlert")
-AddEventHandler("ACCheatAlert", function(reason)
-	local ids = ExtractIdentifiers(source)
-	local args = { ['ids'] = ids, ['reason'] = reason, ['username'] = GetPlayerName(source) }
-	PerformHttpRequest('https://cdn.prefech.dev/api/cheatAlert.php', function(err, text, headers)
-	end, 'POST', json.encode(args), {
-		['Content-Type'] = 'application/json'
-	})
-	DropPlayer(source, '\nYou have been kicked by the Prefech Auto kick system.')
+AddEventHandler("ACCheatAlert", function(args)
+	if args.screenshot and GetResourceState('screenshot-basic') == "started" then
+		PerformHttpRequest('https://cdn.prefech.dev/api/ac-screen', function(code, res, headers)
+			args['url'] = res
+			TriggerClientEvent('ACScreenshot', args.target, args)
+		end, 'GET')
+	else
+		local ids = ExtractIdentifiers(source)
+		local args = { ['ids'] = ids, ['reason'] = args.reason, ['username'] = GetPlayerName(source), ['screenshot'] = args.responseUrl }
+		PerformHttpRequest('https://cdn.prefech.dev/api/cheatAlert.php', function(err, text, headers)
+			print(err, text, headers)
+		end, 'POST', json.encode(args), {
+			['Content-Type'] = 'application/json'
+		})
+		if args.kick then
+			DropPlayer(source, '\nYou have been kicked by the Prefech Auto kick system.')
+		end
+	end
 end)
 
 AddEventHandler("playerConnecting", function(name, setReason, deferrals)
@@ -263,111 +283,71 @@ end)
 Commands= {}
 
 Commands.logs = function(source, args, RawCommand)
-	if GetResourceState('Prefech_Notify') == "started" then
-		if IsPlayerAceAllowed(source, cfgFile.logHistoryPerms) then
-			if tonumber(args[1]) then
-				TriggerClientEvent('Prefech:getClientLogStorage', args[1])
-				Wait(500)
-				if tablelength(storage) == 0 then
-					exports.Prefech_Notify:Notify({
-						title = "Recent logs for: "..GetPlayerName(args[1]).." (0)",
-						message = lang['Commands']['LogHistory'].NoLogs,
-						color = "#93CAED",
-						target = source,
-						timeout = 15
-					})
-				else
-					for k,v in pairs(storage) do
-						exports.Prefech_Notify:Notify({
-							title = lang['Commands']['LogHistory'].Success:format(GetPlayerName(args[1]), k),
-							message = "Channel: "..v.Channel.."\nMessage: "..v.Message:gsub("**",""):gsub("`","").."\nTimeStamp: "..v.TimeStamp,
-							color = "#93CAED",
-							target = source,
-							timeout = 15
-						})
-					end
-				end
+	if IsPlayerAceAllowed(source, cfgFile.logHistoryPerms) then
+		if tonumber(args[1]) then
+			TriggerClientEvent('Prefech:getClientLogStorage', args[1])
+			Wait(500)
+			if tablelength(storage) == 0 then
+				Notify.Custom(source, "Recent logs for: "..GetPlayerName(args[1]).." (0)", lang['Commands']['LogHistory'].NoLogs)
 			else
-				exports.Prefech_Notify:Notify({
-					title = "Error!",
-					message = lang['Commands']['LogHistory'].InvalidId,
-					color = "#93CAED",
-					target = source,
-					timeout = 15
-				})
+				for k,v in pairs(storage) do
+					Notify.Custom(source, lang['Commands']['LogHistory'].Success:format(GetPlayerName(args[1]), k), "Channel: "..v.Channel.."\nMessage: "..v.Message:gsub("**",""):gsub("`","").."\nTimeStamp: "..v.TimeStamp)
+				end
 			end
 		else
-			exports.Prefech_Notify:Notify({
-				title = "Error!",
-				message = lang['Commands']['LogHistory'].InvalidPerms,
-				color = "#93CAED",
-				target = source,
-				timeout = 15
-			})
+			Notify.Error(source, lang['Commands']['LogHistory'].InvalidId)
 		end
 	else
-		errorLog('Prefech_Notify is not installed.')
+		Notify.Error(source, lang['Commands']['LogHistory'].InvalidPerms)
 	end
 end
 
 Commands.screenshot = function(source, args, RawCommand)
-	if GetResourceState('Prefech_Notify') == "started" then
-		if source == 0 then
-			if args[1] and has_val(GetPlayers(), args[1]) then
-				if GetResourceState('screenshot-basic') == "started" then
-					local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
-					local webhooksFile = json.decode(webhooksLaodFile)
-					args['url'] = webhooksFile['imageStore'].webhook
-					args['EmbedMessage'] = lang['Commands']['Screenshot'].Log:format(GetPlayerName(args[1]), args[1], 'Console', source)
-					args['channel'] = "screenshot"
-					TriggerClientEvent('Prefech:ClientCreateScreenshot', args[1], args)
-					print(lang['Commands']['Screenshot'].Success:format(GetPlayerName(args[1])))
-				else
-					errorLog('You need to have screenshot-basic to use screenshot logs.')
-				end
-			end
-		elseif IsPlayerAceAllowed(source, cfgFile.screenshotPerms) then
-			if args[1] and has_val(GetPlayers(), args[1]) then
-				if GetResourceState('screenshot-basic') == "started" then
-					local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
-					local webhooksFile = json.decode(webhooksLaodFile)
-					args['url'] = webhooksFile['imageStore'].webhook
-					args['EmbedMessage'] = lang['Commands']['Screenshot'].Log:format(GetPlayerName(args[1]), args[1], GetPlayerName(source), source)
-					args['channel'] = "screenshot"
-					TriggerClientEvent('Prefech:ClientCreateScreenshot', args[1], args)
-					exports.Prefech_Notify:Notify({
-						title = "Success!",
-						message = lang['Commands']['Screenshot'].Success:format(GetPlayerName(args[1])),
-						color = "#93CAED",
-						target = source,
-						timeout = 15
-					})
-				else
-					errorLog('You need to have screenshot-basic to use screenshot logs.')
-				end
+	if source == 0 then
+		if args[1] and has_val(GetPlayers(), args[1]) then
+			if GetResourceState('screenshot-basic') == "started" then
+				local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
+				local webhooksFile = json.decode(webhooksLaodFile)
+				args['url'] = webhooksFile['imageStore'].webhook
+				args['EmbedMessage'] = lang['Commands']['Screenshot'].Log:format(GetPlayerName(args[1]), args[1], 'Console', source)
+				args['channel'] = "screenshot"
+				TriggerClientEvent('Prefech:ClientCreateScreenshot', args[1], args)
+				print(lang['Commands']['Screenshot'].Success:format(GetPlayerName(args[1])))
 			else
-				exports.Prefech_Notify:Notify({
-					title = "Error!",
-					message = lang['Commands']['Screenshot'].InvalidId,
-					color = "#93CAED",
-					target = source,
-					timeout = 15
-				})
-
+				errorLog('You need to have screenshot-basic to use screenshot logs.')
+			end
+		end
+	elseif IsPlayerAceAllowed(source, cfgFile.screenshotPerms) then
+		if args[1] and has_val(GetPlayers(), args[1]) then
+			if GetResourceState('screenshot-basic') == "started" then
+				local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
+				local webhooksFile = json.decode(webhooksLaodFile)
+				args['url'] = webhooksFile['imageStore'].webhook
+				args['EmbedMessage'] = lang['Commands']['Screenshot'].Log:format(GetPlayerName(args[1]), args[1], GetPlayerName(source), source)
+				args['channel'] = "screenshot"
+				TriggerClientEvent('Prefech:ClientCreateScreenshot', args[1], args)
+				Notify.Success(source, lang['Commands']['Screenshot'].Success:format(GetPlayerName(args[1])))
+			else
+				errorLog('You need to have screenshot-basic to use screenshot logs.')
 			end
 		else
-			exports.Prefech_Notify:Notify({
-				title = "Error!",
-				message = lang['Commands']['Screenshot'].InvalidPerms,
-				color = "#93CAED",
-				target = source,
-				timeout = 15
-			})
+			Notify.Error(source, lang['Commands']['Screenshot'].InvalidId)
 		end
 	else
-		errorLog('Prefech_Notify is not installed.')
+		Notify.Error(source, lang['Commands']['Screenshot'].InvalidPerms)
 	end
 end
+
+CreateThread(function()
+	PerformHttpRequest('https://raw.githubusercontent.com/Prefech/JD_logs/master/json/version.json', function(code, res, headers)
+		if code == 200 then
+			local rv = json.decode(res)
+			if rv.version ~= GetResourceMetadata(GetCurrentResourceName(), 'version') then
+				print('^5[JD_logs] ^1Error: JD_logs is outdated and you will no longer get support for this version.^0')
+			end
+		end
+	end, 'GET')
+end)
 
 for k,v in pairs(cfgFile['Commands']) do
 	for _,i in pairs(v) do
@@ -470,6 +450,7 @@ local function collectValidResourceList()
         validResourceList[GetResourceByFindIndex(i)] = true
     end
 end
+
 collectValidResourceList()
 AddEventHandler("onResourceListRefresh", collectValidResourceList)
 RegisterNetEvent("Prefech:resourceCheck")
@@ -478,7 +459,7 @@ AddEventHandler("Prefech:resourceCheck", function(rcList)
 	Wait(50)
 	for _, resource in ipairs(rcList) do
 		if not validResourceList[resource] then
-			TriggerEvent('ACCheatAlert', 'URD')
+			TriggerEvent('ACCheatAlert', {target = source, reason = 'URD', kick = true})
 		end
 	end
 end)

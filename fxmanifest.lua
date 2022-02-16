@@ -13,7 +13,7 @@
     #####################################################################
 ]]
 
-version '2.1.7.7'
+version '2.1.7.8'
 author 'Prefech'
 description 'FXServer logs to Discord (https://prefech.com/)'
 repository 'https://github.com/prefech/JD_logs'
@@ -22,7 +22,8 @@ repository 'https://github.com/prefech/JD_logs'
 server_scripts {
     'server/server.lua',
     'server/functions.lua',
-    'server/explotions.lua'
+    'server/explotions.lua',
+    'config/notifications.lua'
 }
 
 --Client Scripts

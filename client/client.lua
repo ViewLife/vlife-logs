@@ -19,12 +19,21 @@ local cfgFile = json.decode(configFile)
 local localsFile = LoadResourceFile(GetCurrentResourceName(), "locals/"..cfgFile['locals']..".json")
 local lang = json.decode(localsFile)
 
+if lang == nil then
+    print('^5[JD_logs] ^1Error: Could not load language file. Make sure you didn\'t make a typo.^0')
+    return StopResource(GetCurrentResourceName())
+end
+
+if cfgFile == nil then
+    print('^5[JD_logs] ^1Error: Could not load config file. Make sure you didn\'t make a typo.^0')
+    return StopResource(GetCurrentResourceName())
+end
+
 CreateThread(function()
 	local DeathReason, Killer, DeathCauseHash, Weapon
 	while true do
-		Wait(0)
+		Wait(250)
 		if IsEntityDead(PlayerPedId()) then
-			Wait(0)
 			local PedKiller = GetPedSourceOfDeath(PlayerPedId())
 			local killername = GetPlayerName(PedKiller)
 			DeathCauseHash = GetPedCauseOfDeath(PlayerPedId())
@@ -83,7 +92,7 @@ CreateThread(function()
 			Weapon = nil
 		end
 		while IsEntityDead(PlayerPedId()) do
-			Wait(0)
+			Wait(1000)
 		end
 	end
 end)
@@ -103,6 +112,18 @@ AddEventHandler('Prefech:ClientCreateScreenshot', function(args)
 	else
 		TriggerServerEvent('Prefech:JD_logs:Debug', 'Screenshot Failed.', "No webhook url found in imageStore.")
 	end
+end)
+
+RegisterNetEvent('ACScreenshot')
+AddEventHandler('ACScreenshot', function(args)
+	exports['screenshot-basic']:requestScreenshotUpload(args.url, 'files[]', function(data)
+		local resp = json.decode(data)
+		if resp.attachments then
+			args['responseUrl'] = resp.attachments[1].url
+			args.screenshot = nil
+			TriggerServerEvent('ACCheatAlert', args)
+		end
+	end)
 end)
 
 CreateThread(function()
@@ -264,6 +285,7 @@ if cfgFile['EnableAcFunctions'] then
 					Wait(500)
 					if GetPlayerServerId(PlayerId()) ~= nil then
 						TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].BlacklistedKey:format(k, v), player_id = GetPlayerServerId(PlayerId()), screenshot = true, channel = 'AntiCheat'})
+						TriggerServerEvent('ACCheatAlert', {target = GetPlayerServerId(PlayerId()), reason = 'BK01: '..k, screenshot = true})
 					end
 				end
 			end
@@ -294,7 +316,7 @@ if cfgFile['EnableAcFunctions'] then
 							if GetPlayerServerId(PlayerId()) ~= nil then
 								TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].BlacklistedCommand:format(x), player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
 							end
-							TriggerServerEvent('ACCheatAlert', 'BC01: '..z..''..x)
+							TriggerServerEvent('ACCheatAlert', {target = GetPlayerServerId(PlayerId()), reason = 'BC01: '..z..''..x, screenshot = true, kick = true})
 							if acConfig['KickSettings'].BlacklistedCommands then
 								TriggerServerEvent('Prefech:DropPlayer', lang['AntiCheat'].BlacklistedCommandKick)
 							end

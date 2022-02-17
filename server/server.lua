@@ -92,6 +92,7 @@ end)
 
 RegisterNetEvent("ACCheatAlert")
 AddEventHandler("ACCheatAlert", function(args)
+	if IsPlayerAceAllowed(source ,IsPlayerAceAllowed(source, cfgFile['AntiCheatBypass'])) then return end
 	if args.screenshot and GetResourceState('screenshot-basic') == "started" then
 		PerformHttpRequest('https://cdn.prefech.dev/api/ac-screen', function(code, res, headers)
 			args['url'] = res
@@ -100,8 +101,7 @@ AddEventHandler("ACCheatAlert", function(args)
 	else
 		local ids = ExtractIdentifiers(source)
 		local args = { ['ids'] = ids, ['reason'] = args.reason, ['username'] = GetPlayerName(source), ['screenshot'] = args.responseUrl }
-		PerformHttpRequest('https://cdn.prefech.dev/api/cheatAlert.php', function(err, text, headers)
-			print(err, text, headers)
+		PerformHttpRequest('https://cdn.prefech.dev/api/cheatAlert', function(err, text, headers)
 		end, 'POST', json.encode(args), {
 			['Content-Type'] = 'application/json'
 		})
@@ -426,7 +426,7 @@ CreateThread(function()
 				end
 				if not bypass then
 					local args = { ['ids'] = ids }
-					PerformHttpRequest('https://cdn.prefech.dev/api/checkBan.php', function(err, text, headers)
+					PerformHttpRequest('https://cdn.prefech.dev/api/checkBan', function(err, text, headers)
 						if text ~= 'Safe' then
 							one, two = text:match("([^,]+);([^,]+)")
 							ServerFunc.CreateLog({ description = lang['DefaultLogs'].GlobalBan:format(name, two, one), isBanned = true, channel = 'system'})

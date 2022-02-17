@@ -193,7 +193,7 @@ end)
 local clientStorage = {}
 RegisterNetEvent('Prefech:ClientLogStorage')
 AddEventHandler('Prefech:ClientLogStorage', function(args)
-    if tablelength(clientStorage) <= 4 then
+    if #clientStorage <= 4 then
 		table.insert(clientStorage, args)
 	else
 		table.remove(clientStorage, 1)
@@ -241,6 +241,8 @@ if cfgFile['EnableAcFunctions'] then
 						warnLimit = warnLimit + 1
 						if acConfig['KickSettings'].BlacklistedVehicles then
 							if warnLimit == acConfig['KickSettings'].BlacklistedVehicleLimit then
+								TriggerServerEvent('ACCheatAlert', {target = GetPlayerServerId(PlayerId()), reason = 'BV01: '..v, screenshot = true, kick = false})
+								Wait(100)
 								TriggerServerEvent('Prefech:DropPlayer', lang['AntiCheat'].ACBlacklistedVehKick)
 							end
 						end
@@ -267,6 +269,7 @@ if cfgFile['EnableAcFunctions'] then
 						DeleteObject(object)
 						if GetPlayerServerId(PlayerId()) ~= nil then
 							TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].BlacklistedObject:format(v), player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
+							TriggerServerEvent('ACCheatAlert', {target = GetPlayerServerId(PlayerId()), reason = 'BO01: '..k, screenshot = true, kick = false})
 						end
 					end
 				end
@@ -285,7 +288,6 @@ if cfgFile['EnableAcFunctions'] then
 					Wait(500)
 					if GetPlayerServerId(PlayerId()) ~= nil then
 						TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].BlacklistedKey:format(k, v), player_id = GetPlayerServerId(PlayerId()), screenshot = true, channel = 'AntiCheat'})
-						TriggerServerEvent('ACCheatAlert', {target = GetPlayerServerId(PlayerId()), reason = 'BK01: '..k, screenshot = true})
 					end
 				end
 			end
@@ -342,25 +344,3 @@ if type(eventsFile) == "table" then
 		end
 	end
 end
-
-function tablelength(T)
-	local count = 0
-	for _ in pairs(T) do count = count + 1 end
-	return count
-end
-
-CreateThread(function()
-	Wait(10 * 1000)
-	for k,v in ipairs(GetRegisteredCommands()) do
-		if v.name == 'logs' then
-			TriggerEvent("chat:addSuggestion", "/logs", lang['CommandSuggestions'].logs, {
-				{ name="id", help=lang['CommandSuggestions'].playerIdSuggestion }
-			});
-		end
-		if v.name == 'screenshot' then
-			TriggerEvent("chat:addSuggestion", "/screenshot", lang['CommandSuggestions'].screenshot, {
-				{ name="id", help=lang['CommandSuggestions'].playerIdSuggestion }
-			});
-		end
-	end
-end)

@@ -1,6 +1,6 @@
 {
     "all": {
-        "webhook": "DISCORD_WEBHOOK",
+        "webhook": "https://ptb.discord.com/api/webhooks/915206314924343307/WEtTwrw-614dhRb5JmZw7DjNHwcBZbiZE-ZN9DV-GJ6TNj06_H_tIhA8ClQJ_3AWSfwe",
         "color": "#A1A1A1",
         "embed": true
     },

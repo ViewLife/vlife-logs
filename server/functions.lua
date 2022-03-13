@@ -56,14 +56,14 @@ function ConvertColor(channel)
 end
 
 function sendWebhooks(load)
-        if webhooksFile[load.channel] then
+    if webhooksFile[load.channel] then
         PerformHttpRequest(webhooksFile[load.channel].webhook, function(err, text, headers)
             ServerFunc.getStatus(err, load.channel)
         end, 'POST', json.encode(load.messageToDeliver), {
             ['Content-Type'] = 'application/json'
         })
     else
-        print('^1Error: No webhook channel set for: ^0'..load.channel)
+        print('Error: WH1000 (No webhook channel set for: ^0'..load.channel..')')
     end
 end
 
@@ -227,29 +227,33 @@ function GetPlayerDetails(src, config, channel)
         _hp = ""
     end
 
-    if config['useESX'] and channel ~= 'joins' then
-        local xPlayer = ESX.GetPlayerFromId(src)
-        _esx = "\n\n**ESX:**"
-        if config['esxName'] and not webhooksFile[channel].Hide['esxName'] then
-            _esx = _esx.."\n**Charachter Name:** "..xPlayer.name
-        end
-        if config['esxJob'] and not webhooksFile[channel].Hide['esxJob'] then
-            _esx = _esx.."\n**Job:** "..xPlayer.job.name.."\n**Job Grade:** "..xPlayer.job.grade
-        end
-        if config['esxMoney'] and not webhooksFile[channel].Hide['esxMoney'] then
-            _cash = 0
-            _bank = 0
-            _blmon = 0
-            for k,v in pairs(xPlayer.accounts) do
-                if v.name == "money" then
-                    _cash = ESX.Math.GroupDigits(v.money)
-                elseif v.name == "bank" then
-                    _bank = ESX.Math.GroupDigits(v.money)
-                elseif v.name == "black_money" then
-                    _blmon = ESX.Math.GroupDigits(v.money)
-                end
+    if config['useESX'] and channel ~= 'joins' and ESX ~= nil then
+        xPlayer = ESX.GetPlayerFromId(src)
+        if xPlayer ~= nil then
+            _esx = "\n\n**ESX:**"
+            if config['esxName'] and not webhooksFile[channel].Hide['esxName'] then
+                _esx = _esx.."\n**Charachter Name:** "..xPlayer.name
             end
-            _esx = _esx.."\n**Money:** $".._cash.."\n**Bank Balance:** $".._bank.."\n**Black Money:** $".._blmon
+            if config['esxJob'] and not webhooksFile[channel].Hide['esxJob'] then
+                _esx = _esx.."\n**Job:** "..xPlayer.job.name.."\n**Job Grade:** "..xPlayer.job.grade
+            end
+            if config['esxMoney'] and not webhooksFile[channel].Hide['esxMoney'] then
+                _cash = 0
+                _bank = 0
+                _blmon = 0
+                for k,v in pairs(xPlayer.accounts) do
+                    if v.name == "money" then
+                        _cash = ESX.Math.GroupDigits(v.money)
+                    elseif v.name == "bank" then
+                        _bank = ESX.Math.GroupDigits(v.money)
+                    elseif v.name == "black_money" then
+                        _blmon = ESX.Math.GroupDigits(v.money)
+                    end
+                end
+                _esx = _esx.."\n**Money:** $".._cash.."\n**Bank Balance:** $".._bank.."\n**Black Money:** $".._blmon
+            end
+        else
+            _esx = ""
         end
     else
         _esx = ""
@@ -483,7 +487,7 @@ function CreateLog(args)
     end
 end
 
-function getStatus()
+function getStatus(status, channel)
 	if status == 404 or status == 401 and webhooksFile[channel].webhook ~= "DISCORD_WEBHOOK" and webhooksFile[channel].webhook ~= "" then
 		print('^3Warn: JD_logs webhook. Possible invalid webhook for "'..channel..'" webhook. Status code: '..status)
 	end

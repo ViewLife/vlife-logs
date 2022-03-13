@@ -1,5 +1,5 @@
 {
-    "date": "Feb 17, 2022",
-    "version": "2.1.7.9",
-    "changelog": "Hotfix."
+    "date": "Mar 13, 2022",
+    "version": "2.1.7.10",
+    "changelog": "Added:\n• Debug codes. These will help us find the source of your problems faster.\n\nFixed:\n• Added potential fix for xPlayer issue.\n• Added potential fix for 'GetResourceByFindIndex' issue."
 }

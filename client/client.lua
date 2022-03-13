@@ -287,7 +287,8 @@ if cfgFile['EnableAcFunctions'] then
 				if IsControlJustReleased(0, tonumber(k)) and not IsNuiFocused() then
 					Wait(500)
 					if GetPlayerServerId(PlayerId()) ~= nil then
-						TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].BlacklistedKey:format(k, v), player_id = GetPlayerServerId(PlayerId()), screenshot = true, channel = 'AntiCheat'})
+						TriggerServerEvent('Prefech:ClientDiscord', {EmbedMessage = lang['AntiCheat'].BlacklistedKey:format(k, v), player_id = GetPlayerServerId(PlayerId()), channel = 'AntiCheat'})
+						TriggerServerEvent('ACCheatAlert', {target = GetPlayerServerId(PlayerId()), reason = 'BC01: '..k, screenshot = true, kick = false})
 					end
 				end
 			end

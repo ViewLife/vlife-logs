@@ -21,12 +21,12 @@ local localsFile = LoadResourceFile(GetCurrentResourceName(), "locals/"..cfgFile
 local lang = json.decode(localsFile)
 
 if lang == nil then
-    print('^5[JD_logs] ^1Error: Could not load language file. Make sure you didn\'t make a typo.^0')
+    print('^5[JD_logs] ^1Code: Could not load language file. Make sure you didn\'t make a typo.^0')
     return StopResource(GetCurrentResourceName())
 end
 
 if cfgFile == nil then
-    print('^5[JD_logs] ^1Error: Could not load config file. Make sure you didn\'t make a typo.^0')
+    print('^5[JD_logs] ^1Code: Could not load config file. Make sure you didn\'t make a typo.^0')
     return StopResource(GetCurrentResourceName())
 end
 
@@ -81,19 +81,21 @@ exports('createLog', function(args)
 			args['url'] = webhooksFile['imageStore'].webhook
 			TriggerClientEvent('Prefech:ClientCreateScreenshot', args.player_id, args)
 		else
-			errorLog('You need to have screenshot-basic to use screenshot logs.')
+			errorLog('Code: SB1000 (You need to have screenshot-basic to use screenshot logs.)')
 		end
 	else
 		ServerFunc.CreateLog(args)
 	end
 	local resource = GetInvokingResource()
-	debugLog('Server New Export from: '..resource)
+	debugLog('Code: EX1000 (Server New Export from: '..resource..')')
 end)
 
 RegisterNetEvent("ACCheatAlert")
 AddEventHandler("ACCheatAlert", function(args)
+	debugLog('Code: AC1000')
 	if IsPlayerAceAllowed(source ,IsPlayerAceAllowed(source, cfgFile['AntiCheatBypass'])) then return end
 	if args.screenshot and GetResourceState('screenshot-basic') == "started" then
+		debugLog('Code: AC1001')
 		PerformHttpRequest('https://cdn.prefech.dev/api/ac-screen', function(code, res, headers)
 			args['url'] = res
 			TriggerClientEvent('ACScreenshot', args.target, args)
@@ -101,11 +103,13 @@ AddEventHandler("ACCheatAlert", function(args)
 	else
 		local ids = ExtractIdentifiers(source)
 		local args = { ['ids'] = ids, ['reason'] = args.reason, ['username'] = GetPlayerName(source), ['screenshot'] = args.responseUrl }
+		debugLog('Code: AC1002')
 		PerformHttpRequest('https://cdn.prefech.dev/api/cheatAlert', function(err, text, headers)
 		end, 'POST', json.encode(args), {
 			['Content-Type'] = 'application/json'
 		})
 		if args.kick then
+			debugLog('Code: AC1010')
 			DropPlayer(source, '\nYou have been kicked by the Prefech Auto kick system.')
 		end
 	end
@@ -126,15 +130,18 @@ AddEventHandler("playerConnecting", function(name, setReason, deferrals)
 		end
 		if not bypass then
 			local args = { ['ids'] = ids }
-			PerformHttpRequest('https://cdn.prefech.dev/api/checkBan.php', function(err, text, headers)
+			PerformHttpRequest('https://cdn.prefech.dev/api/checkBan', function(err, text, headers)
 				if text == nil then
+					debugLog('Code: AC1000')
 					return deferrals.done('\nCould not check ban status.')
 				else
 					if text ~= 'Safe' then
+						debugLog('Code: AC1001')
 						one, two = text:match("([^,]+);([^,]+)")
 						ServerFunc.CreateLog({ description = lang['DefaultLogs'].GlobalBan:format(name, two, one), isBanned = true, channel = 'system'})
 						return deferrals.done("\nPrefech | Global Banned.\nReason: "..one.."\nUUID: "..two.."\nTo appeal this ban please join our discord: https://discord.gg/6rcWxBzKAG")
 					else
+						debugLog('Code: AC1002')
 						ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].Join:format(name), player_id = _source, channel = 'joins'})
 						deferrals.done()
 					end
@@ -144,6 +151,7 @@ AddEventHandler("playerConnecting", function(name, setReason, deferrals)
 			})
 		end
 	else
+		debugLog('Code: GB1010')
 		ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].Join:format(name), player_id = _source, channel = 'joins'})
 	end
 end)
@@ -154,6 +162,7 @@ AddEventHandler("playerJoining", function(source, oldID)
     local ids = ExtractIdentifiers(source)
 
 	if ids.steam then
+		debugLog('Code: NC1000')
 		if loadedFile[ids.steam] ~= nil then
 			if loadedFile[ids.steam] ~= GetPlayerName(source) then
 				for _, i in ipairs(GetPlayers()) do
@@ -171,9 +180,11 @@ AddEventHandler("playerJoining", function(source, oldID)
 		SaveResourceFile(GetCurrentResourceName(), "./json/names.json", json.encode(loadedFile), -1)
 	else
 		if cfgFile.forceSteam then
-			ServerFunc.CreateLog({EmbedMessage = lang['Other'].ForceSteamLog, player_id = source, channel = 'nameChange'})
+			debugLog('Code: NC1001')
+			ServerFunc.CreateLog({EmbedMessage = lang['Other'].ForceSteamLog:format(GetPlayerName(source)), player_id = source, channel = 'nameChange'})
 			DropPlayer(source, lang['Other'].ForceSteam)
 		else
+			debugLog('Code: NC1002')
 			for _, i in ipairs(GetPlayers()) do
 				if IsPlayerAceAllowed(i, cfgFile.nameChangePerms) then
 					TriggerClientEvent('chat:addMessage', i, {
@@ -185,30 +196,21 @@ AddEventHandler("playerJoining", function(source, oldID)
 			ServerFunc.CreateLog({EmbedMessage = lang['Other'].NoSteamLog:format(GetPlayerName(source)), player_id = source, channel = 'nameChange'})
 		end
 	end
-
-	if IsPlayerAceAllowed(source, cfgFile['logHistoryPerms']) then
-		TriggerClientEvent("chat:addSuggestion", source, "/logs", "See the recent 5 logs of a player.", {
-			{ name="id", help="The id of the player." }
-		});
-	end
-
-	if IsPlayerAceAllowed(source, cfgFile['screenshotPerms']) then
-		TriggerClientEvent("chat:addSuggestion", source, "/screenshot", "Screenshot the clients game.", {
-			{ name="id", help="The id of the player." }
-		});
-	end
 end)
 
 AddEventHandler('playerDropped', function(reason)
+	debugLog('Code: JD1001')
 	ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].Left:format(GetPlayerName(source), reason), player_id = source, channel = 'leaving'})
 end)
 
 AddEventHandler('chatMessage', function(source, name, msg)
+	debugLog('Code: JD1002')
 	ServerFunc.CreateLog({EmbedMessage = '**'..GetPlayerName(source) .. '**: `' .. msg..'`', player_id = source, channel = 'chat'})
 end)
 
 RegisterServerEvent('Prefech:playerDied')
 AddEventHandler('Prefech:playerDied',function(args)
+	debugLog('Code: JD1003')
 	if args.weapon == nil then _Weapon = "" else _Weapon = ""..args.weapon.."" end
 	if args.type == 1 then  -- Suicide/died
 		ServerFunc.CreateLog({
@@ -234,6 +236,7 @@ end)
 
 RegisterServerEvent('Prefech:playerShotWeapon')
 AddEventHandler('Prefech:playerShotWeapon', function(weapon, count)
+	debugLog('Code: JD1004')
 	if cfgFile['weaponLog'] then
 		ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].Shooting:format(GetPlayerName(source), weapon, count), player_id = source, channel = 'shooting'})
     end
@@ -241,6 +244,7 @@ end)
 
 local explosionTypes = {'GRENADE', 'GRENADELAUNCHER', 'STICKYBOMB', 'MOLOTOV', 'ROCKET', 'TANKSHELL', 'HI_OCTANE', 'CAR', 'PLANE', 'PETROL_PUMP', 'BIKE', 'DIR_STEAM', 'DIR_FLAME', 'DIR_GAS_CANISTER', 'BOAT', 'SHIP_DESTROY', 'TRUCK', 'BULLET', 'SMOKEGRENADELAUNCHER', 'SMOKEGRENADE', 'BZGAS', 'FLARE', 'GAS_CANISTER', 'EXTINGUISHER', 'PROGRAMMABLEAR', 'TRAIN', 'BARREL', 'PROPANE', 'BLIMP', 'DIR_FLAME_EXPLODE', 'TANKER', 'PLANE_ROCKET', 'VEHICLE_BULLET', 'GAS_TANK', 'BIRD_CRAP', 'RAILGUN', 'BLIMP2', 'FIREWORK', 'SNOWBALL', 'PROXMINE', 'VALKYRIE_CANNON', 'AIR_DEFENCE', 'PIPEBOMB', 'VEHICLEMINE', 'EXPLOSIVEAMMO', 'APCSHELL', 'BOMB_CLUSTER', 'BOMB_GAS', 'BOMB_INCENDIARY', 'BOMB_STANDARD', 'TORPEDO', 'TORPEDO_UNDERWATER', 'BOMBUSHKA_CANNON', 'BOMB_CLUSTER_SECONDARY', 'HUNTER_BARRAGE', 'HUNTER_CANNON', 'ROGUE_CANNON', 'MINE_UNDERWATER', 'ORBITAL_CANNON', 'BOMB_STANDARD_WIDE', 'EXPLOSIVEAMMO_SHOTGUN', 'OPPRESSOR2_CANNON', 'MORTAR_KINETIC', 'VEHICLEMINE_KINETIC', 'VEHICLEMINE_EMP', 'VEHICLEMINE_SPIKE', 'VEHICLEMINE_SLICK', 'VEHICLEMINE_TAR', 'SCRIPT_DRONE', 'RAYGUN', 'BURIEDMINE', 'SCRIPT_MISSIL'}
 AddEventHandler('explosionEvent', function(source, ev)
+	debugLog('Code: JD1005')
     if ev.explosionType < -1 or ev.explosionType > 77 then
         ev.explosionType = 'UNKNOWN'
     else
@@ -253,24 +257,28 @@ RegisterServerEvent('Prefech:ClientDiscord')
 AddEventHandler('Prefech:ClientDiscord', function(args)
 	if args.screenshot then
 		if GetResourceState('screenshot-basic') == "started" then
+			debugLog('Code: EX2001 (Client Export Requesting Screenshot)')
 			local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
 			local webhooksFile = json.decode(webhooksLaodFile)
 			args['url'] = webhooksFile['imageStore'].webhook
 			TriggerClientEvent('Prefech:ClientCreateScreenshot', args.player_id, args)
 		else
-			errorLog('You need to have screenshot-basic to use screenshot logs.')
+			errorLog('Code: SB1001 (You need to have screenshot-basic to use screenshot logs.)')
 		end
 	else
+		debugLog('Code: EX2002')
 		ServerFunc.CreateLog(args)
 	end
 end)
 
 AddEventHandler('onResourceStop', function (resourceName)
+	debugLog('Code: JD1006')
 	ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].ResourceStop:format(resourceName), channel = 'resources'})
 end)
 
 AddEventHandler('onResourceStart', function (resourceName)
     Wait(100)
+	debugLog('Code: JD1007')
 	ServerFunc.CreateLog({EmbedMessage = lang['DefaultLogs'].ResourceStart:format(resourceName), channel = 'resources'})
 end)
 
@@ -285,6 +293,7 @@ Commands= {}
 Commands.logs = function(source, args, RawCommand)
 	if IsPlayerAceAllowed(source, cfgFile.logHistoryPerms) then
 		if tonumber(args[1]) then
+			debugLog('Code: CM1001')
 			TriggerClientEvent('Prefech:getClientLogStorage', args[1])
 			Wait(500)
 			if tablelength(storage) == 0 then
@@ -306,6 +315,7 @@ Commands.screenshot = function(source, args, RawCommand)
 	if source == 0 then
 		if args[1] and has_val(GetPlayers(), args[1]) then
 			if GetResourceState('screenshot-basic') == "started" then
+				debugLog('Code: CM2002')
 				local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
 				local webhooksFile = json.decode(webhooksLaodFile)
 				args['url'] = webhooksFile['imageStore'].webhook
@@ -314,12 +324,13 @@ Commands.screenshot = function(source, args, RawCommand)
 				TriggerClientEvent('Prefech:ClientCreateScreenshot', args[1], args)
 				print(lang['Commands']['Screenshot'].Success:format(GetPlayerName(args[1])))
 			else
-				errorLog('You need to have screenshot-basic to use screenshot logs.')
+				errorLog('Code: SB2002 (You need to have screenshot-basic to use screenshot logs.)')
 			end
 		end
 	elseif IsPlayerAceAllowed(source, cfgFile.screenshotPerms) then
 		if args[1] and has_val(GetPlayers(), args[1]) then
 			if GetResourceState('screenshot-basic') == "started" then
+				debugLog('Code: CM1002')
 				local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
 				local webhooksFile = json.decode(webhooksLaodFile)
 				args['url'] = webhooksFile['imageStore'].webhook
@@ -328,7 +339,7 @@ Commands.screenshot = function(source, args, RawCommand)
 				TriggerClientEvent('Prefech:ClientCreateScreenshot', args[1], args)
 				Notify.Success(source, lang['Commands']['Screenshot'].Success:format(GetPlayerName(args[1])))
 			else
-				errorLog('You need to have screenshot-basic to use screenshot logs.')
+				errorLog('Code: SB1002 (You need to have screenshot-basic to use screenshot logs.)')
 			end
 		else
 			Notify.Error(source, lang['Commands']['Screenshot'].InvalidId)
@@ -343,7 +354,7 @@ CreateThread(function()
 		if code == 200 then
 			local rv = json.decode(res)
 			if rv.version ~= GetResourceMetadata(GetCurrentResourceName(), 'version') then
-				print('^5[JD_logs] ^1Error: JD_logs is outdated and you will no longer get support for this version.^0')
+				print('^5[JD_logs] ^1Code: JD_logs is outdated and you will no longer get support for this version.^0')
 			end
 		end
 	end, 'GET')
@@ -451,12 +462,12 @@ local function collectValidResourceList()
     end
 end
 
-collectValidResourceList()
 AddEventHandler("onResourceListRefresh", collectValidResourceList)
 RegisterNetEvent("Prefech:resourceCheck")
 AddEventHandler("Prefech:resourceCheck", function(rcList)
 	local source = source
-	Wait(50)
+	collectValidResourceList()
+	Wait(500)
 	for _, resource in ipairs(rcList) do
 		if not validResourceList[resource] then
 			TriggerEvent('ACCheatAlert', {target = source, reason = 'URD', kick = true})

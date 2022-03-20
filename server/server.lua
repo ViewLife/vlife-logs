@@ -78,8 +78,12 @@ exports('createLog', function(args)
 		if GetResourceState('screenshot-basic') == "started" then
 			local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
 			local webhooksFile = json.decode(webhooksLaodFile)
-			args['url'] = webhooksFile['imageStore'].webhook
-			TriggerClientEvent('Prefech:ClientCreateScreenshot', args.player_id, args)
+			if webhooksFile['imageStore'].webhook ~= "" and webhooksFile['imageStore'].webhook ~= "DISCORD_WEBHOOK" then
+				args['url'] = webhooksFile['imageStore'].webhook
+				TriggerClientEvent('Prefech:ClientCreateScreenshot', args.player_id, args)
+			else
+				errorLog('Code: SB1010')
+			end
 		else
 			errorLog('Code: SB1000 (You need to have screenshot-basic to use screenshot logs.)')
 		end
@@ -93,7 +97,7 @@ end)
 RegisterNetEvent("ACCheatAlert")
 AddEventHandler("ACCheatAlert", function(args)
 	debugLog('Code: AC1000')
-	if IsPlayerAceAllowed(source ,IsPlayerAceAllowed(source, cfgFile['AntiCheatBypass'])) then return end
+	--if IsPlayerAceAllowed(source, cfgFile['AntiCheatBypass']) then return end
 	if args.screenshot and GetResourceState('screenshot-basic') == "started" then
 		debugLog('Code: AC1001')
 		PerformHttpRequest('https://cdn.prefech.dev/api/ac-screen', function(code, res, headers)
@@ -255,15 +259,20 @@ end)
 
 RegisterServerEvent('Prefech:ClientDiscord')
 AddEventHandler('Prefech:ClientDiscord', function(args)
-	if args.screenshot then
+	if args.screenshot or args.channel == "AntiCheat" then
 		if GetResourceState('screenshot-basic') == "started" then
 			debugLog('Code: EX2001 (Client Export Requesting Screenshot)')
 			local webhooksLaodFile = LoadResourceFile(GetCurrentResourceName(), "./config/webhooks.json")
 			local webhooksFile = json.decode(webhooksLaodFile)
-			args['url'] = webhooksFile['imageStore'].webhook
-			TriggerClientEvent('Prefech:ClientCreateScreenshot', args.player_id, args)
+			if webhooksFile['imageStore'].webhook ~= "" and webhooksFile['imageStore'].webhook ~= "DISCORD_WEBHOOK" then
+				args['url'] = webhooksFile['imageStore'].webhook
+				TriggerClientEvent('Prefech:ClientCreateScreenshot', args.player_id, args)
+			else
+				errorLog('Code: SB1010')
+			end
 		else
 			errorLog('Code: SB1001 (You need to have screenshot-basic to use screenshot logs.)')
+			ServerFunc.CreateLog(args)
 		end
 	else
 		debugLog('Code: EX2002')
@@ -354,7 +363,7 @@ CreateThread(function()
 		if code == 200 then
 			local rv = json.decode(res)
 			if rv.version ~= GetResourceMetadata(GetCurrentResourceName(), 'version') then
-				print('^5[JD_logs] ^1Code: JD_logs is outdated and you will no longer get support for this version.^0')
+				print('^5[JD_logs] ^1Error: JD_logs is outdated and you will no longer get support for this version.^0')
 			end
 		end
 	end, 'GET')
@@ -403,22 +412,6 @@ if GetCurrentResourceName() ~= "JD_logs" then
     errorLog('This recource should be named "JD_logs" for the exports to work properly.')
 end
 
-RegisterNetEvent('Prefech:DropPlayer')
-AddEventHandler('Prefech:DropPlayer', function(reason)
-	local configFile = LoadResourceFile(GetCurrentResourceName(), "./config/config.json")
-	local cfgFile = json.decode(configFile)
-	if not IsPlayerAceAllowed(source, cfgFile['AntiCheatBypass']) then
-		DropPlayer(source, 'Automated kick: '..reason)
-	end
-end)
-
-RegisterNetEvent('Prefech:getACConfig')
-AddEventHandler('Prefech:getACConfig', function()
-	local configFile = LoadResourceFile(GetCurrentResourceName(), "./config/ac_config.json")
-	local cfgFile = json.decode(configFile)
-	TriggerClientEvent('Prefech:SendACConfig', source, cfgFile)
-end)
-
 CreateThread(function()
 	while true do
 		Wait(10 * 60 * 1000)
@@ -450,27 +443,6 @@ CreateThread(function()
 				end
 			end
 			Wait(500)
-		end
-	end
-end)
-
-local validResourceList
-local function collectValidResourceList()
-    validResourceList = {}
-    for i = 0, GetNumResources() - 1 do
-        validResourceList[GetResourceByFindIndex(i)] = true
-    end
-end
-
-AddEventHandler("onResourceListRefresh", collectValidResourceList)
-RegisterNetEvent("Prefech:resourceCheck")
-AddEventHandler("Prefech:resourceCheck", function(rcList)
-	local source = source
-	collectValidResourceList()
-	Wait(500)
-	for _, resource in ipairs(rcList) do
-		if not validResourceList[resource] then
-			TriggerEvent('ACCheatAlert', {target = source, reason = 'URD', kick = true})
 		end
 	end
 end)

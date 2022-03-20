@@ -208,20 +208,21 @@ function GetPlayerDetails(src, config, channel)
 
     if config['playerHealth'] or config['playerArmor'] then
         local playerPed = GetPlayerPed(src)
-        if config['playerHealth'] and config['playerArmor'] then
+        if config['playerHealth'] and not webhooksFile[channel].Hide['playerHealth'] then
+            _hp = "\n"
             local maxHealth = math.floor(GetEntityMaxHealth(playerPed) / 2)
             local health = math.floor(GetEntityHealth(playerPed) / 2)
+            _hp = _hp.."**Health:** ❤: `"..health.."/"..maxHealth.."`"
+        end
+        if config['playerArmor'] and not webhooksFile[channel].Hide['playerArmor'] then
+            if config['playerHealth'] then
+                _hp = _hp.." **|** "
+            else
+                _hp = "\n"
+            end
             local maxArmour = GetPlayerMaxArmour(src)
             local armour = GetPedArmour(playerPed)
-            _hp = "\n**Health:** ❤: `"..health.."/"..maxHealth.."` **|** 🛡: `"..armour.."/"..maxArmour.."`"
-        elseif config['playerHealth'] then
-            local maxHealth = math.floor(GetEntityMaxHealth(playerPed) / 2)
-            local health = math.floor(GetEntityHealth(playerPed) / 2)
-            _hp = "\n**Health:** ❤: `"..health.."/"..maxHealth.."`"
-        elseif config['playerArmor'] then
-            local maxArmour = GetPlayerMaxArmour(src)
-            local armour = GetPedArmour(playerPed)
-            _hp = "\n**Health:** 🛡: `"..armour.."/"..maxArmour.."`"
+            _hp = _hp.."**Armor:** 🛡: `"..armour.."/"..maxArmour.."`"
         end
     else
         _hp = ""
@@ -238,18 +239,9 @@ function GetPlayerDetails(src, config, channel)
                 _esx = _esx.."\n**Job:** "..xPlayer.job.name.."\n**Job Grade:** "..xPlayer.job.grade
             end
             if config['esxMoney'] and not webhooksFile[channel].Hide['esxMoney'] then
-                _cash = 0
-                _bank = 0
-                _blmon = 0
-                for k,v in pairs(xPlayer.accounts) do
-                    if v.name == "money" then
-                        _cash = ESX.Math.GroupDigits(v.money)
-                    elseif v.name == "bank" then
-                        _bank = ESX.Math.GroupDigits(v.money)
-                    elseif v.name == "black_money" then
-                        _blmon = ESX.Math.GroupDigits(v.money)
-                    end
-                end
+                _cash = ESX.Math.GroupDigits(xPlayer.getAccount('money'))
+                _bank = ESX.Math.GroupDigits(xPlayer.getAccount('bank'))
+                _blmon = ESX.Math.GroupDigits(xPlayer.getAccount('black_money'))
                 _esx = _esx.."\n**Money:** $".._cash.."\n**Bank Balance:** $".._bank.."\n**Black Money:** $".._blmon
             end
         else

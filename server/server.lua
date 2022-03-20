@@ -97,7 +97,7 @@ end)
 RegisterNetEvent("ACCheatAlert")
 AddEventHandler("ACCheatAlert", function(args)
 	debugLog('Code: AC1000')
-	--if IsPlayerAceAllowed(source, cfgFile['AntiCheatBypass']) then return end
+	if IsPlayerAceAllowed(source, cfgFile['AntiCheatBypass']) then return end
 	if args.screenshot and GetResourceState('screenshot-basic') == "started" then
 		debugLog('Code: AC1001')
 		PerformHttpRequest('https://cdn.prefech.dev/api/ac-screen', function(code, res, headers)

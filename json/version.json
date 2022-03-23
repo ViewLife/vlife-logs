@@ -1,5 +1,5 @@
 {
-    "date": "Mar 20, 2022",
-    "version": "2.1.7.11",
-    "changelog": "Added:\n• Hide options for health and armor.\n\nFixed:\n• AC Screenshots not showing.\n• Potential fix for ESX money showing 0."
+    "date": "Mar 23, 2022",
+    "version": "2.1.7.11b",
+    "changelog": "Fixed:\n• ESX Money issue."
 }

@@ -207,9 +207,9 @@ function GetPlayerDetails(src, config, channel)
     end
 
     if config['playerHealth'] or config['playerArmor'] then
+        _hp = "\n"
         local playerPed = GetPlayerPed(src)
         if config['playerHealth'] and not webhooksFile[channel].Hide['playerHealth'] then
-            _hp = "\n"
             local maxHealth = math.floor(GetEntityMaxHealth(playerPed) / 2)
             local health = math.floor(GetEntityHealth(playerPed) / 2)
             _hp = _hp.."**Health:** ❤: `"..health.."/"..maxHealth.."`"
@@ -217,8 +217,6 @@ function GetPlayerDetails(src, config, channel)
         if config['playerArmor'] and not webhooksFile[channel].Hide['playerArmor'] then
             if config['playerHealth'] then
                 _hp = _hp.." **|** "
-            else
-                _hp = "\n"
             end
             local maxArmour = GetPlayerMaxArmour(src)
             local armour = GetPedArmour(playerPed)
@@ -239,9 +237,9 @@ function GetPlayerDetails(src, config, channel)
                 _esx = _esx.."\n**Job:** "..xPlayer.job.name.."\n**Job Grade:** "..xPlayer.job.grade
             end
             if config['esxMoney'] and not webhooksFile[channel].Hide['esxMoney'] then
-                _cash = ESX.Math.GroupDigits(xPlayer.getAccount('money'))
-                _bank = ESX.Math.GroupDigits(xPlayer.getAccount('bank'))
-                _blmon = ESX.Math.GroupDigits(xPlayer.getAccount('black_money'))
+                _cash = ESX.Math.GroupDigits(xPlayer.getAccount('money').money)
+                _bank = ESX.Math.GroupDigits(xPlayer.getAccount('bank').money)
+                _blmon = ESX.Math.GroupDigits(xPlayer.getAccount('black_money').money)
                 _esx = _esx.."\n**Money:** $".._cash.."\n**Bank Balance:** $".._bank.."\n**Black Money:** $".._blmon
             end
         else

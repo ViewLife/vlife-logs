@@ -50,7 +50,6 @@ RegisterCommand('jdlogs', function(source, args, RawCommand) --[[Console command
 end)
 
 function debugLog(x)
-	print(GetResourceKvpString('JD_logs:DebugLog'))
 	if GetResourceKvpString('JD_logs:DebugLog') == 'true' then
 		print("^5[JD_logs]^0 " .. x)
 	end

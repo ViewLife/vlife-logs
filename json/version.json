@@ -1,5 +1,4 @@
 {
-    "date": "Mar 23, 2022",
-    "version": "2.1.7.11b",
-    "changelog": "Fixed:\n• ESX Money issue."
-}
+    "date": "Apr 8, 2022",
+    "version": "2.1.7.12",
+    "changelog": "Added:\n• Command to enable debug mode.\n(You can use the following command in console: `jdlogs debuglog true`)\n\nChanged:\n• Added some error codes.\n• Made sure commands are not logged in chat messages anymore.\n\nNotes:\n**This update is required if you want to get support from our team.**"}

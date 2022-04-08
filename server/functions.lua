@@ -237,9 +237,21 @@ function GetPlayerDetails(src, config, channel)
                 _esx = _esx.."\n**Job:** "..xPlayer.job.name.."\n**Job Grade:** "..xPlayer.job.grade
             end
             if config['esxMoney'] and not webhooksFile[channel].Hide['esxMoney'] then
-                _cash = ESX.Math.GroupDigits(xPlayer.getAccount('money').money)
-                _bank = ESX.Math.GroupDigits(xPlayer.getAccount('bank').money)
-                _blmon = ESX.Math.GroupDigits(xPlayer.getAccount('black_money').money)
+                if xPlayer.getAccount('money').money ~= nil then
+                    _cash = ESX.Math.GroupDigits(xPlayer.getAccount('money').money)
+                else
+                    _cash = 'N/A'
+                end
+                if xPlayer.getAccount('bank').money ~= nil then
+                    _bank = ESX.Math.GroupDigits(xPlayer.getAccount('bank').money)
+                else
+                    _bank = 'N/A'
+                end
+                if xPlayer.getAccount('black_money').money ~= nil then
+                    _blmon = ESX.Math.GroupDigits(xPlayer.getAccount('black_money').money)
+                else
+                    _blmon = 'N/A'
+                end
                 _esx = _esx.."\n**Money:** $".._cash.."\n**Bank Balance:** $".._bank.."\n**Black Money:** $".._blmon
             end
         else

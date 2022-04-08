@@ -13,7 +13,7 @@
     #####################################################################
 ]]
 
-local JD_Debug = false -- Enable when you have issues or when asked by Prefech Staff
+local JD_Debug = false
 local configFile = LoadResourceFile(GetCurrentResourceName(), "./config/config.json")
 local cfgFile = json.decode(configFile)
 
@@ -36,14 +36,30 @@ AddEventHandler('Prefech:JD_logs:Debug', log)
 RegisterNetEvent('Prefech:JD_logs:errorLog')
 AddEventHandler('Prefech:JD_logs:errorLog', errorLog)
 
+RegisterCommand('jdlogs', function(source, args, RawCommand) --[[Console command to enable debug and error logs.]]
+	if source == 0 then
+		if args[2]:lower() == "false" then state = 'false' else state = 'true' end
+		if args[1]:lower() == "debuglog" then
+			SetResourceKvp('JD_logs:DebugLog', state)
+			print('^5[JD_logs]^1 Updated the debug log status to: '..state)
+		elseif args[1]:lower() == "errorlog" then
+			SetResourceKvp('JD_logs:ErrorLog', state)
+			print('^5[JD_logs]^1 Updated the error log status to: '..state)
+		end
+	end
+end)
+
 function debugLog(x)
-	if JD_Debug then
+	print(GetResourceKvpString('JD_logs:DebugLog'))
+	if GetResourceKvpString('JD_logs:DebugLog') == 'true' then
 		print("^5[JD_logs]^0 " .. x)
 	end
 end
 
 function errorLog(x)
-	print("^5[JD_logs]^1 " .. x .."^0")
+	if GetResourceKvpString('JD_logs:ErrorLog') == 'true' or GetResourceKvpString('JD_logs:ErrorLog') == nil then
+		print("^5[JD_logs]^1 " .. x .."^0")
+	end
 end
 
 RegisterNetEvent("Prefech:discordLogs")
@@ -209,7 +225,9 @@ end)
 
 AddEventHandler('chatMessage', function(source, name, msg)
 	debugLog('Code: JD1002')
-	ServerFunc.CreateLog({EmbedMessage = '**'..GetPlayerName(source) .. '**: `' .. msg..'`', player_id = source, channel = 'chat'})
+	if msg:sub(1, 1) ~= '/' then
+		ServerFunc.CreateLog({EmbedMessage = '**'..GetPlayerName(source) .. '**: `' .. msg..'`', player_id = source, channel = 'chat'})
+	end
 end)
 
 RegisterServerEvent('Prefech:playerDied')

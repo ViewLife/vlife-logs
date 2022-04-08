@@ -106,11 +106,11 @@ AddEventHandler('Prefech:ClientCreateScreenshot', function(args)
 				args['responseUrl'] = resp.attachments[1].url
 				TriggerServerEvent('Prefech:ClientUploadScreenshot', args)
 			else
-				TriggerServerEvent('Prefech:JD_logs:Debug', 'Screenshot Failed.', "Make sure you have setup screenshot-basic correctly.")
+				TriggerServerEvent('Prefech:JD_logs:Debug', 'Code: SB1005')
 			end
 		end)
 	else
-		TriggerServerEvent('Prefech:JD_logs:Debug', 'Screenshot Failed.', "No webhook url found in imageStore.")
+		TriggerServerEvent('Prefech:JD_logs:Debug', 'Code: SB1010')
 	end
 end)
 
@@ -148,7 +148,7 @@ CreateThread(function()
 			if fireCount ~= 0 and timeout == 0 then
 				if not ClientWeapons.WeaponNames[tostring(fireWeapon)] then
 					TriggerServerEvent('Prefech:playerShotWeapon', lang['WeaponFired'].Undefined)
-					TriggerServerEvent('Prefech:JD_logs:Debug', 'Weapon not defined.', "Weapon not listed: "..tostring(fireWeapon))
+					TriggerServerEvent('Prefech:JD_logs:Debug', 'GF1001')
 					return
 				end
 
@@ -181,13 +181,13 @@ exports('discord', function(message, id, id2, color, channel)
 	end
 	TriggerServerEvent('Prefech:ClientDiscord', args)
 	local resource = GetInvokingResource()
-	TriggerServerEvent('Prefech:JD_logs:Debug', 'Server Old Export from '..resource)
+	TriggerServerEvent('Prefech:JD_logs:Debug', 'Client Old Export from '..resource)
 end)
 
 exports('createLog', function(args)
 	TriggerServerEvent('Prefech:ClientDiscord', args)
 	local resource = GetInvokingResource()
-	TriggerServerEvent('Prefech:JD_logs:Debug', 'Server New Export from '..resource)
+	TriggerServerEvent('Prefech:JD_logs:Debug', 'Client New Export from '..resource)
 end)
 
 local clientStorage = {}

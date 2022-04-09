@@ -41,23 +41,23 @@ RegisterCommand('jdlogs', function(source, args, RawCommand) --[[Console command
 		if args[2]:lower() == "false" then state = 'false' else state = 'true' end
 		if args[1]:lower() == "debuglog" then
 			SetResourceKvp('JD_logs:DebugLog', state)
-			print('^5[JD_logs]^1 Updated the debug log status to: '..state)
+			print('^5[JD_logs]^1: Updated the debug log status to: '..state)
 		elseif args[1]:lower() == "errorlog" then
 			SetResourceKvp('JD_logs:ErrorLog', state)
-			print('^5[JD_logs]^1 Updated the error log status to: '..state)
+			print('^5[JD_logs]^1: Updated the error log status to: '..state)
 		end
 	end
 end)
 
 function debugLog(x)
 	if GetResourceKvpString('JD_logs:DebugLog') == 'true' then
-		print("^5[JD_logs]^0 " .. x)
+		print("^5[JD_logs]^0: " .. x)
 	end
 end
 
 function errorLog(x)
 	if GetResourceKvpString('JD_logs:ErrorLog') == 'true' or GetResourceKvpString('JD_logs:ErrorLog') == nil then
-		print("^5[JD_logs]^1 " .. x .."^0")
+		print("^5[JD_logs]^1: " .. x .."^0")
 	end
 end
 

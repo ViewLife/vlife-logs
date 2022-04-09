@@ -14,7 +14,7 @@
 ]]
 
 
-version '2.1.7.12'
+version '2.1.7.12b'
 author 'Prefech'
 description 'FXServer logs to Discord (https://prefech.com/)'
 repository 'https://github.com/prefech/JD_logs'

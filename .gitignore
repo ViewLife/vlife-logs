@@ -1,3 +1,5 @@
+config/*
+
 # Compiled Lua sources
 luac.out
 
